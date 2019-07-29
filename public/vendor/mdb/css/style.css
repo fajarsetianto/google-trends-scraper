@@ -1,0 +1,7 @@
+html, body, .hero, .view{
+    height:100%;
+}
+.intro-2{
+    background: url('https://mdbootstrap.com/img/Photos/Others/img (50).jpg')no-repeat center center;
+    background-size: cover;
+}
