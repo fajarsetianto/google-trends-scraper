@@ -59,29 +59,50 @@
                         </div>
                         <div class="card-body">
                                 <canvas id="myChart"></canvas>
-                                <div class="card">
-                                   <div class="card-header">
-                                      Hasil Korelasi Pearson
-                                   </div>
-                                   <div class="card-body">
-                                       <table class="table">
-                                             <thead>
-                                                <tr>
-                                                   @foreach($results->corelations as $corelation)
-                                                      <th>{{$corelation['keyword']}}</th>
-                                                    @endforeach
-                                                </tr>
-                                             </thead>
-                                             <tbody>
-                                                <tr>
-                                                   @foreach($results->corelations as $corelation)
-                                                      <td>{{$corelation['value']}}</td>
-                                                   @endforeach
-                                                </tr>
-                                             </tbody>
-                                          </table>
+                                <div class="row">
+                                   <div class="col-md-6">
+                                    <div class="card">
+                                       <div class="card-header">
+                                          Hasil Korelasi Pearson
+                                       </div>
+                                       <div class="card-body">
+                                           <table class="table">
+                                                 <thead>
+                                                    <tr>
+                                                       @foreach($results->corelations as $corelation)
+                                                          <th>{{$corelation['keyword']}}</th>
+                                                        @endforeach
+                                                    </tr>
+                                                 </thead>
+                                                 <tbody>
+                                                    <tr>
+                                                       @foreach($results->corelations as $corelation)
+                                                          <td>{{$corelation['value']}}</td>
+                                                       @endforeach
+                                                    </tr>
+                                                 </tbody>
+                                              </table>
+                                        </div>
                                     </div>
+                                   </div>
+                                   <div class="col-md-6">
+                                    <div class="card">
+                                       <div class="card-header">
+                                          Kueri Terkait
+                                       </div>
+                                       <div class="card-body">
+                                           <table class="table">
+                                                 <tbody>
+                                                    <tr>
+                                                       
+                                                    </tr>
+                                                 </tbody>
+                                              </table>
+                                        </div>
+                                    </div>
+                                   </div>
                                 </div>
+                                
                                 
                         </div>
                         

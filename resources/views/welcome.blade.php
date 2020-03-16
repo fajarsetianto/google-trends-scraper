@@ -36,12 +36,7 @@
                               <div class="col-auto p-0" style="margin-right:-1px">
                                  <div class="input-group">
                                     <select class="form-control rounded-0" id="exampleFormControlSelect1" name="timeseries">
-                                       <option value="now 1-d">1 hari terakhir</option>
-                                       <option value="now 7-d">7 hari terakhir</option>
-                                       <option value="now 1-m">1 bulan terakhir</option>
-                                       <option value="today 3-m">3 bulan terakhir</option>
-                                       <option value="today 12-m">1 tahun terakhir</option>
-                                       <option value="today 5-y">5 tahun terakhir</option>
+                                       <option value="now 1-d">Semua Kategori</option>
                                     </select>
                                     <div class="input-group-append">
                                        <span class="input-group-text rounded-0" id="basic-addon2"><i class="fas fa-calendar" aria-hidden="true"></i></span>
