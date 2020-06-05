@@ -46,11 +46,11 @@
                               <div class="col-auto pl-0">
                                  <div class="input-default-wrapper">
                                     <input type="text" class="input-default-js">
-                                    <input type="file" id="file-with-current" name="dataset" class="input-default-js" required>
+                                    <input type="file" id="file-with-current" name="dataset" class="input-default-js" accept=".xls,.xslx"required>
                                     <label class="label-for-default-js rounded-right mb-0 bg-white" for="file-with-current">
                                        <span class="span-choose-file">Choose
                                        file</span>
-                                       <div class="float-right span-browse"><i class="fas fa-folder" aria-hidden="true"></i></div>
+                                       <div class="float-right span-browse"><i class="fas fa-file-excel" aria-hidden="true"></i></div>
                                     </label>
                                  </div>
                               </div>

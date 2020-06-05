@@ -1,0 +1,78 @@
+.custom__menu li{
+    padding: 0;
+    cursor: pointer;
+    border: 0;
+}
+.custom__menu .custom__menu__input{
+    /* color: #ffffff; */
+    display: block;
+    width: 100%;
+    height: calc(1.5em + .75rem + 2px);
+    padding: .375rem .75rem;
+    font-size: 1rem;
+    font-weight: 400;
+    line-height: 1.5;
+    color: #495057;
+    background-color: #fff;
+    background-clip: padding-box;
+    border: 1px solid #ced4da;
+    border-radius: .25rem;
+    transition: border-color .15s ease-in-out,box-shadow .15s ease-in-out;
+    white-space: nowrap;
+}
+.custom__menu .custom__menu__input.show{
+    border-bottom-left-radius: 0;
+    border-bottom-right-radius: 0;
+    border: 0;
+}
+
+.custom__menu li a.custom__menu__more{
+    position: absolute;
+    padding: 10px;
+    top: 0;
+    right: 0;
+    height: 100%;
+    color: #ffffff;
+}
+.custom__menu li span.custom__menu__back{
+    padding: 10px;
+    display: inline-block;
+}
+
+.custom__menu li a.custom__menu__selectable{
+    
+    padding: 10px;
+    height: 100%;
+    
+    display: block;
+}
+
+.custom__menu li:hover a.custom__menu__selectable{
+    background-color: #d4d4d4;
+}
+.custom__menu li:hover a.custom__menu__more{
+    background-color: #c4c4c4;
+}
+.custom__menu li a.custom__menu__more:hover{
+    background-color: #b4b4b4;
+    color: inherit;
+}
+
+.custom__menu {
+    position: relative;
+}
+
+.custom__menu .custom__menu__container {
+    position: absolute;
+    z-index: 99;
+    width: 100%;
+    /* margin-top: -3px;
+    border-top-left-radius: 0;
+    border-top-right-radius: 0; */
+    max-height: 275px;
+    overflow: auto;
+    background-color: #ffffff;
+}
+
+
+

@@ -38,7 +38,7 @@
                              <label class="label-for-default-js rounded-right mb-0 bg-white" for="file-with-current">
                                 <span class="span-choose-file">Choose
                                 file</span>
-                                <div class="float-right span-browse"><i class="fas fa-folder" aria-hidden="true"></i></div>
+                                <div class="float-right span-browse"><i class="fas fa-file-excel" aria-hidden="true"></i></div>
                              </label>
                           </div>
                        </div>

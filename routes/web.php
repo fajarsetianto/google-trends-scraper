@@ -11,8 +11,16 @@
 |
 */
 
-Route::get('/', function () {
-    return view('welcome');
-});
+Route::get('/', 'AppController@index');
 
 Route::post('/cari', 'GoogleTrendController@find');
+Route::post('/search', 'AppController@search')->name('search');
+Route::get('/search/suggestion/', 'AppController@getSuggestion')->name('suggestion');
+
+
+Route::get('/development', 'AppController@debug')->name('debug');
+
+
+Route::post('/fetch', 'AppController@fetch')->name('fetch');
+
+Route::get('/debug', 'AppController@getSuggestion');
