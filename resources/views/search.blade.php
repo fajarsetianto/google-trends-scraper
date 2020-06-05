@@ -33,6 +33,7 @@
    <body>
        <div class="container-fluid d-flex align-items-center justify-content-center" style="min-height: 100vh">
         <div class="container">
+            <div id="detail-progress" class="text-center"></div>
             <div class="progress">
                 <div id="fetch-progress" class="progress-bar progress-bar-striped" role="progressbar" style="width: 0%" aria-valuenow="0" aria-valuemin="0" aria-valuemax="100">0%</div>
             </div>
@@ -57,33 +58,44 @@
       
        <script type="text/javascript" src="{{asset('custom/custom.js')}}"></script>
        <script>
+            const detailProgress = $('#detail-progress');
             var periods = {!!json_encode($formatedPeriods)!!}
             var keywords = {!!json_encode($input['keyword'])!!}
             var dataset = {!!json_encode($dataSet)!!}
             var category = {!!json_encode($input['kategori'])!!}
-            var requests = [];
-            var step = 100 / (periods.length);
-            var i = 0;
-            periods.forEach(element => {
-                var start_date = moment(element.start_date);
-                var end_date = moment(element.end_date);
 
-                $.ajax({
-                    url: '{{route("fetch")}}',
-                    method: 'POST',
-                    data: {
-                        _token : '{{csrf_token()}}',
-                        start_date : start_date.format('YYYY-MM-DD'),
-                        end_date : end_date.format('YYYY-MM-DD'),
-                        keywords : keywords,
-                        category : category
-                    },
-                    success: function(resposne){
-                        i += step;
-                        $('#fetch-progress').width((i) +'%').html((Math.ceil(i)) +'%')
-                    }
-                })
-            });
+            fetch();
+
+
+            function fetch(){
+                detailProgress.html('Mengambil data dari Google Trends')
+
+                var requests = [];
+                var step = 100 / (periods.length);
+                var i = 0;
+                periods.forEach(function(element, index){
+                    var start_date = moment(element.start_date);
+                    var end_date = moment(element.end_date);
+
+                    $.ajax({
+                        url: '{{route("fetch")}}',
+                        method: 'POST',
+                        data: {
+                            _token : '{{csrf_token()}}',
+                            start_date : start_date.format('YYYY-MM-DD'),
+                            end_date : end_date.format('YYYY-MM-DD'),
+                            keywords : keywords,
+                            category : category
+                        },
+                        success: function(response){
+                            periods[index].timeseries = response['TIMESERIES'];
+                            i += step;
+                            $('#fetch-progress').width((i) +'%').html((Math.ceil(i)) +'%')
+                        }
+                    })
+                });
+            }
+            
             // $.when.apply(null,requests).then(function(){
             //     $.each(arguments, function(i,row){
             //         console.log(row)
