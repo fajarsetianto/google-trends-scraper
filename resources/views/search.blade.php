@@ -63,38 +63,61 @@
             var keywords = {!!json_encode($input['keyword'])!!}
             var dataset = {!!json_encode($dataSet)!!}
             var category = {!!json_encode($input['kategori'])!!}
+            var url = "{!!route("fetch")!!}";
+            var step = 100 / (periods.length);
+            var i = 0;
+            fetching();
 
-            fetch();
 
-
-            function fetch(){
-                detailProgress.html('Mengambil data dari Google Trends')
-
-                var requests = [];
-                var step = 100 / (periods.length);
-                var i = 0;
-                periods.forEach(function(element, index){
-                    var start_date = moment(element.start_date);
-                    var end_date = moment(element.end_date);
-
-                    $.ajax({
-                        url: '{{route("fetch")}}',
-                        method: 'POST',
-                        data: {
-                            _token : '{{csrf_token()}}',
-                            start_date : start_date.format('YYYY-MM-DD'),
-                            end_date : end_date.format('YYYY-MM-DD'),
-                            keywords : keywords,
-                            category : category
-                        },
-                        success: function(response){
-                            periods[index].timeseries = response['TIMESERIES'];
-                            i += step;
-                            $('#fetch-progress').width((i) +'%').html((Math.ceil(i)) +'%')
-                        }
-                    })
-                });
+            async function fetching(){
+                try{
+                    detailProgress.html('Mengambil data dari Google Trends')
+                    for (let index = 0; index < periods.length; index++) {
+                        periods[index].timeseries = await $.post(
+                            url,
+                            {
+                                _token : '{{csrf_token()}}',
+                                start_date : moment(periods[index].start_date).format('YYYY-MM-DD'),
+                                end_date : moment(periods[index].end_date).format('YYYY-MM-DD'),
+                                keywords : keywords,
+                                category : category
+                            })
+                        i += step;
+                        $('#fetch-progress').width((i) +'%').html((Math.ceil(i)) +'%')
+                    }
+                }catch(err){
+                    console.log(err)
+                }
             }
+
+            // function fetch(){
+            //     detailProgress.html('Mengambil data dari Google Trends')
+
+            //     var requests = [];
+            //     var step = 100 / (periods.length);
+            //     var i = 0;
+            //     periods.forEach(function(element, index){
+            //         var start_date = moment(element.start_date);
+            //         var end_date = moment(element.end_date);
+
+            //         $.ajax({
+            //             url: '{{route("fetch")}}',
+            //             method: 'POST',
+            //             data: {
+            //                 _token : '{{csrf_token()}}',
+            //                 start_date : start_date.format('YYYY-MM-DD'),
+            //                 end_date : end_date.format('YYYY-MM-DD'),
+            //                 keywords : keywords,
+            //                 category : category
+            //             },
+            //             success: function(response){
+            //                 periods[index].timeseries = response['TIMESERIES'];
+            //                 i += step;
+            //                 $('#fetch-progress').width((i) +'%').html((Math.ceil(i)) +'%')
+            //             }
+            //         })
+            //     });
+            // }
             
             // $.when.apply(null,requests).then(function(){
             //     $.each(arguments, function(i,row){
