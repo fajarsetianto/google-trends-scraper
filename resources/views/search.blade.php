@@ -57,7 +57,7 @@
       <script type="text/javascript" src="{{asset('vendor/bootstrap-tags-input/tagsinput.js')}}"></script>
       
        <script type="text/javascript" src="{{asset('custom/custom.js')}}"></script>
-       <script>
+       {{-- <script>
             const detailProgress = $('#detail-progress');
             var periods = {!!json_encode($formatedPeriods)!!}
             var keywords = {!!json_encode($input['keyword'])!!}
@@ -73,15 +73,50 @@
                 try{
                     detailProgress.html('Mengambil data dari Google Trends')
                     for (let index = 0; index < periods.length; index++) {
-                        periods[index].timeseries = await $.post(
+                        var currentStartDate =  moment(periods[index].start_date);
+                        var currentEndDate =  moment(periods[index].end_date);
+                        var currentDataSet = await $.post(
                             url,
                             {
                                 _token : '{{csrf_token()}}',
-                                start_date : moment(periods[index].start_date).format('YYYY-MM-DD'),
-                                end_date : moment(periods[index].end_date).format('YYYY-MM-DD'),
+                                start_date : currentStartDate.format('YYYY-MM-DD'),
+                                end_date : currentEndDate.format('YYYY-MM-DD'),
                                 keywords : keywords,
                                 category : category
                             })
+                        
+                        if(currentDataSet['TIMESERIES'].length == 0){
+                            dataset.map(function(data){
+                                if(moment(data['start_date']).isBetween(currentStartDate, currentEndDate) || moment(data['end_date']).isBetween(currentStartDate, currentEndDate)){
+                                    data['keywords'] = {};
+                                    keywords.forEach(function(keyword){
+                                        data['keywords'][keyword] = 0
+                                    })
+                                }
+                                return data;
+                            })
+                        }else{
+                            dataset.filter(function(datafilter){
+                                return datafilter['keywords'] === undefined
+                            }).forEach(function(data){
+                                var dataStartDate = moment(data['start_date']);
+                                var dataEndDate = moment(data['end_date']);
+
+                                filteredTimeseries = currentDataSet['TIMESERIES'].filter(function(timeseries){
+                                    return moment.unix(timeseries.time).isBetween(dataStartDate, dataEndDate)
+                                })
+
+                                if(filteredTimeseries.length != 0){
+                                    data['keywords'] = {};
+                                    keywords.forEach(function(keyword, index){
+                                        value = filteredTimeseries.reduce(function(total, element){
+                                            return total + element.value[index];
+                                        },0)
+                                        data['keywords'][keyword] = value;
+                                    });
+                                }
+                            })
+                        }
                         i += step;
                         $('#fetch-progress').width((i) +'%').html((Math.ceil(i)) +'%')
                     }
@@ -126,6 +161,22 @@
             // });
                 
             
+       </script> --}}
+       <script>
+           const detailProgress = $('#detail-progress');
+           check();
+
+           async function check(){
+               try{
+                detailProgress.html('Mengambil data dari Google Trends')
+                let response = await $.get('{{route("queue",[$queue->id])}}')
+                if(!response.is_finished){
+                    check()
+                }
+               }catch(error){
+                    console.log(error);
+               }
+           }
        </script>
-   </body>
+    </body>
 </html>

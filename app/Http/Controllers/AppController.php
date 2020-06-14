@@ -4,6 +4,8 @@ namespace App\Http\Controllers;
 
 use App\Imports\DatasetImport;
 use App\Imports\DatasetImports;
+use App\Jobs\FetchGoogleTrend;
+use App\Models\Queue;
 use App\Services\GoogleTrend;
 use Google\GTrends;
 use Illuminate\Http\Request;
@@ -53,35 +55,26 @@ class AppController extends Controller{
             return $value['start_date'];
         });
 
-        //calculation for minimal iteration fetching data
-
         $first_date = $dataSet->first()['start_date'];
         $last_date = $dataSet->last()['end_date'];
 
-        $periods = CarbonPeriod::create($first_date,'8 months', $last_date);
-
-        $formatedPeriods = array_map(function($value){
+        $periods = collect(CarbonPeriod::create($first_date,'8 months', $last_date));        
+        
+        $formatedPeriods = $periods->map(function($value){
             return [
                 'start_date' => $value->copy(),
                 'end_date' => $value->copy()->addMonths(8)->subDays(1)
             ];
-        },$periods->toArray());
-
-        $dataSet = $dataSet->mapToGroups(function($value) use ($formatedPeriods){
-            for ($i=0; $i < sizeof($formatedPeriods); $i++) { 
-                $periodStartDate = $formatedPeriods[$i]['start_date']->copy();
-                $periodEndDate = $formatedPeriods[$i]['end_date']->copy();
-                if($value['start_date']->between($periodStartDate, $periodEndDate) && $value['end_date']->between($periodStartDate, $periodEndDate)){
-                    return  [$i => $value];
-                }
-            }
         });
-        // return 'a';
-        
-        // dd($this->gTrends->explore($input['keyword'], $input['kategori'], 'all'));
-        
-        
-        return view('search', compact('input', 'dataSet', 'formatedPeriods'));
+
+        $queue = Queue::create([
+            'dataset' => $dataSet->toArray(),
+            'keywords' => $input['keyword'],
+            'category' => $input['kategori'],
+            'is_finished' => 0,
+        ]);
+        FetchGoogleTrend::dispatch($queue);
+        return view('search', compact('queue'));
     }
 
     public function getSuggestion(Request $request){
@@ -101,20 +94,28 @@ class AppController extends Controller{
         return $newArr;
     }
 
-    public function fetch(Request $request){
-        $input = $request->all();
-        $data = $this->gTrends->explore($input['keywords'], $input['category'], $input['start_date'].' '.$input['end_date']);
-        return response()->json($data,200);
-    }
-
     public function debug(){
         $g = new GoogleTrend([
             'hl'  => 'id',
             'tz'  => -60, # last hour
             'geo' => 'ID',
         ]);
-        $data = $g->explore(['corona'], 0 , 'all','',['*'], 0.5);
+        // dd('a');
+        $data = $g->finterestBySubregion(['corona'], 'WEEK' ,0 , '2019-06-08 2020-06-08');
         dd($data);
+    }
+
+    public function jobs(Queue $queue){
+        // logger('info', $queue->toArray());
+        if($queue->is_finished){
+            return response()->json([
+                'is_finished' => $queue->is_finished,
+                'dataset' => $queue->dataset
+            ],200);
+        }
+        return response()->json([
+            'is_finished' => $queue->is_finished,
+        ],200);
     }
 
    

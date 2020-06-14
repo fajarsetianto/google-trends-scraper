@@ -193,7 +193,6 @@ class GoogleTrend extends GTrends{
         unlink($cookieJar);
 
         $statusCode = $client->getResponse()->getStatusCode();
-        // dd($client->getResponse());
         if ($statusCode == 200) {
 
             $headers = $client->getResponse()->getHeaders()->toArray();

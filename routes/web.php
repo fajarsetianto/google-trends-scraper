@@ -24,3 +24,5 @@ Route::get('/development', 'AppController@debug')->name('debug');
 Route::post('/fetch', 'AppController@fetch')->name('fetch');
 
 Route::get('/debug', 'AppController@getSuggestion');
+
+Route::get('/jobs/{queue}','AppController@jobs')->name('queue');
