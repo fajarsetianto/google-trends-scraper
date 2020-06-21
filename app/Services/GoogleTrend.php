@@ -150,7 +150,7 @@ class GoogleTrend extends GTrends{
         }
 
         $client = new Client();
-        $cookieJar = tempnam(sys_get_temp_dir(),'cookie');
+        $cookieJar = tempnam(storage_path('logs'),'cookie');
         $client->setOptions([
             'adapter' => Curl::class,
             // 'proxy_host' => '36.90.181.227',
