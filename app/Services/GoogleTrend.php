@@ -221,7 +221,7 @@ class GoogleTrend extends GTrends{
         $data = $this->_getData($uri, 'GET', $param);
         if ($data) {
 
-            return Json::decode(trim(substr($data, 5)), Json\Json::TYPE_ARRAY);
+            return Json::decode(trim(substr($data, 5)), Json::TYPE_ARRAY);
         }
         return false;
     }
@@ -233,7 +233,7 @@ class GoogleTrend extends GTrends{
         $data = $this->_getData($uri, 'GET', $param);
         if ($data) {
 
-            return Json::decode(trim(substr($data, 5)), Json\Json::TYPE_ARRAY);
+            return Json::decode(trim(substr($data, 5)), Json::TYPE_ARRAY);
         }
         return false;
     }
