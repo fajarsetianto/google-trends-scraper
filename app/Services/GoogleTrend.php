@@ -141,7 +141,7 @@ class GoogleTrend extends GTrends{
         return $results;
     }
 
-    private function _getData($uri, $method, array $params=[])
+    public function _getData($uri, $method, array $params=[])
     {
         if ($method != 'GET' AND $method != 'POST') {
 
@@ -217,6 +217,18 @@ class GoogleTrend extends GTrends{
     public function suggestionsAutocomplete($kWord)
     {
         $uri = self::SUGGESTIONS_AUTOCOMPLETE_ENDPOINT . "/'$kWord'";
+        $param = ['hl' => $this->options['hl']];
+        $data = $this->_getData($uri, 'GET', $param);
+        if ($data) {
+
+            return Json\Json::decode(trim(substr($data, 5)), Json\Json::TYPE_ARRAY);
+        }
+        return false;
+    }
+
+    public function getCategories()
+    {
+        $uri = self::CATEGORIES_ENDPOINT;
         $param = ['hl' => $this->options['hl']];
         $data = $this->_getData($uri, 'GET', $param);
         if ($data) {
