@@ -213,5 +213,17 @@ class GoogleTrend extends GTrends{
         }
         return false;
     }
+
+    public function suggestionsAutocomplete($kWord)
+    {
+        $uri = self::SUGGESTIONS_AUTOCOMPLETE_ENDPOINT . "/'$kWord'";
+        $param = ['hl' => $this->options['hl']];
+        $data = $this->_getData($uri, 'GET', $param);
+        if ($data) {
+
+            return Json\Json::decode(trim(substr($data, 5)), Json\Json::TYPE_ARRAY);
+        }
+        return false;
+    }
     
 }
