@@ -12,9 +12,10 @@ use Illuminate\Queue\InteractsWithQueue;
 use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Foundation\Bus\Dispatchable;
 use Illuminate\Support\Collection;
+use Exception;
 
 
-class FetchGoogleTrend
+class FetchGoogleTrend implements ShouldQueue
 {
     use Dispatchable, InteractsWithQueue, Queueable, SerializesModels;
 
@@ -60,12 +61,19 @@ class FetchGoogleTrend
             return $data->values();
         });
         $periods = $this->getPeriods($dataset);
+
+
+        $this->currentQueue->update(['status' => 2]);
+
+
         foreach($keywords as $keyword){
+            $currentTime = Carbon::now();
             $monthly = $googleTrend->explore(
                 $keyword->toArray(),
                 $this->currentQueue->category,
                 'all'
             );
+            logger('monthly => '.$currentTime->diffInSeconds(Carbon::now()));
             if(is_array($monthly)){
                 $monthly = collect($monthly['TIMESERIES']);
                 if($monthly->isNotEmpty()){
@@ -73,11 +81,14 @@ class FetchGoogleTrend
                         return [Carbon::createFromTimestamp($data['time'])->format('Y-m') => $data];
                     });
                     foreach($periods as $period){
+                        $currentTime = Carbon::now();
                         $daily = $googleTrend->explore(
                             $keyword->toArray(),
                             $this->currentQueue->category,
                             $period['start_date']->format('Y-m-d').' '.$period['end_date']->format('Y-m-d')
                         );
+                        logger('period => '.$currentTime->diffInSeconds(Carbon::now()));
+                        $currentTime = Carbon::now();
                         if(is_array($daily)){
                             $daily = collect($daily['TIMESERIES']);
                             if($daily->isNotEmpty()){
@@ -148,18 +159,25 @@ class FetchGoogleTrend
                             logger('daily data error');
                             //daily response error, should throw exception
                         }
+                        logger('arange data => '.$currentTime->diffInSeconds(Carbon::now()));
                     }
                 }else{
+                    
+                    throw new Exception('monthly data empty');
                     logger('monthly data emtpy');
                     //monthly timeseries empty
                 }
             }else{
+                
+                throw new Exception('monthly data error');
                 logger('monthly data error');
                 //monthly reponse error,  should throw exception
             }
             
         }
-
+        
+        $this->currentQueue->update(['status' => 3]);
+        $currentTime = Carbon::now();
         $keywords = $keywords->collapse()->mapWithKeys(function($keyword) use ($dataset){
             return [$keyword => $dataset->max(function($data) use ($keyword){
                     return $data['keywords'][$keyword];
@@ -178,14 +196,14 @@ class FetchGoogleTrend
             }
             return $data;
         });
-
+        logger('normalization data => '.$currentTime->diffInSeconds(Carbon::now()));
         $this->currentQueue->update([
-            'dataset' => $dataset
+            'dataset' => $dataset,
+            'status' => 4
         ]);
 
-        dd($dataset->pluck('keywords'), $keywords);
-
     }
+    
 
     protected function getPeriods(Collection $dataset){
         $first_date = $dataset->first()['start_date'];
@@ -210,76 +228,9 @@ class FetchGoogleTrend
         return $periods;
     }
 
-    protected function normalize(){
-        foreach($periods as $period){
-            $curentStartPeriod = $period['start_date'];
-            $curentEndPeriod = $period['end_date'];
-            $reponse = $googleTrend->explore(
-                $queue->keywords,
-                $queue->category,
-                $curentStartPeriod->format('Y-m-d').' '.$curentEndPeriod->format('Y-m-d')
-            );
-            
-            if(is_array($reponse)){ 
-                $timeseries = collect($reponse['TIMESERIES']);
-                if($timeseries->isNotEmpty()){
-                    $timeseries = $timeseries->map(function($data) use ($all){
-                        
-                    });
-                    $dataset = $dataset->map(function($data) use ($timeseries, $keywords){
-                        $currentStartDate = $data['start_date'];
-                        $currentEndDate = $data['end_date'];
-                        $currentTimeSeries = $timeseries->filter(function($time) use($currentStartDate, $currentEndDate){
-                            return Carbon::createFromTimestamp($time['time'])->between($currentStartDate, $currentEndDate);
-                        });
-                        if($currentTimeSeries->isNotEmpty()){
-                            if(array_key_exists('trend_data', $data)){
-                                for ($i=0; $i < $keywords->count(); $i++) { 
-                                    $data['trend_data'][$keywords[$i]] += $currentTimeSeries->sum(function($time) use ($i){
-                                        return $time['value'][$i];
-                                    });
-                                }
-                            }else{
-                                $data['trend_data'] = [];
-                                for ($i=0; $i < $keywords->count(); $i++) { 
-                                    $data['trend_data'][$keywords[$i]] = $currentTimeSeries->sum(function($time) use ($i){
-                                        return $time['value'][$i];
-                                    });
-                                }
-                            }
-                        }else{
-                            if(!array_key_exists('trend_data', $data)){
-                                $data['trend_data'] = [];
-                                foreach($keywords as $keyword){
-                                    $data['trend_data'][$keyword] = 0;
-                                }
-                            }
-                        }
-                        return $data;
-                    });
-                }else{
-                    $dataset = $dataset->map(function($data) use ($curentStartPeriod, $curentEndPeriod, $keywords){
-                        if($data['start_date']->between($curentStartPeriod, $curentEndPeriod) || $data['end_date']->between($curentStartPeriod, $curentEndPeriod)){
-                            if(!array_key_exists('trend_data', $data)){
-                                $data['trend_data'] = [];
-                                foreach($keywords as $keyword){
-                                    $data['trend_data'][$keyword] = 0;
-                                }
-                            }
-                        }
-                        return $data;
-                    });
-                }
-            }else{
-                //error handling reponse not 200
-            }
-        }
-    }
-
-
-
     public function failed(Exception $exception)
     {
-        // Send user notification of failure, etc...
+        $this->currentQueue->update(['status' => 0]);
     }
+
 }

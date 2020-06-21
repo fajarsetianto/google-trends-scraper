@@ -33,10 +33,30 @@
    <body>
        <div class="container-fluid d-flex align-items-center justify-content-center" style="min-height: 100vh">
         <div class="container">
-            <div id="detail-progress" class="text-center"></div>
-            <div class="progress">
-                <div id="fetch-progress" class="progress-bar progress-bar-striped" role="progressbar" style="width: 0%" aria-valuenow="0" aria-valuemin="0" aria-valuemax="100">0%</div>
+            <h4 id="detail-progress" class="text-center" data-status="">Adding Job to Queue</h4>
+            <div class="d-flex" style="justify-content: space-around">
+                <div style="flex-basis: 24%">
+                    <div class="progress">
+                        <div id="progress-1" class="progress-bar " role="progressbar" style="width: 0%" aria-valuenow="0" aria-valuemin="0" aria-valuemax="100"></div>
+                    </div>
+                </div>
+                <div style="flex-basis: 24%">
+                    <div class="progress">
+                        <div id="progress-2" class="progress-bar " role="progressbar" style="width: 0%" aria-valuenow="0" aria-valuemin="0" aria-valuemax="100"></div>
+                    </div>
+                </div>
+                <div style="flex-basis: 24%">
+                    <div class="progress">
+                        <div id="progress-3" class="progress-bar " role="progressbar" style="width: 0%" aria-valuenow="0" aria-valuemin="0" aria-valuemax="100"></div>
+                    </div>
+                </div>
+                <div style="flex-basis: 24%">
+                    <div class="progress">
+                        <div id="progress-4" class="progress-bar " role="progressbar" style="width: 0%" aria-valuenow="0" aria-valuemin="0" aria-valuemax="100"></div>
+                    </div>
+                </div>
             </div>
+            <div id="note" class="alert alert-warning d-none m-3 text-small" role="alert"></div>
         </div>
        </div>
      
@@ -163,20 +183,68 @@
             
        </script> --}}
        <script>
-           const detailProgress = $('#detail-progress');
-           check();
-
-           async function check(){
-               try{
-                detailProgress.html('Mengambil data dari Google Trends')
-                let response = await $.get('{{route("queue",[$queue->id])}}')
-                if(!response.is_finished){
-                    check()
-                }
-               }catch(error){
+           (function(){
+            const detailProgress = $('#detail-progress');
+            const note = $('#note');
+            check();
+            async function check(){
+                try{
+                    let response = await $.get('{{route("queue",[$queue->id])}}')
+                    if(response.status != detailProgress.data('status') || response.status == 1){
+                        
+                        switch(response.status){
+                            case 0:
+                                detailProgress.html('Error');
+                                break;
+                            case 1:
+                                detailProgress.html('1. Adding job to queue');
+                                $('#progress-1').each(function(){
+                                    for (let index = 1; index <= 100; index++) {
+                                        $(this).css('width',index+'%')
+                                    }
+                                })
+                                note.html('Sorry we are a little busy at the moment. We will process your request after '+response.jobs_a_head+' other requests').removeClass('d-none')
+                                break;
+                            case 2:
+                                note.addClass('d-none')
+                                detailProgress.html('2. Get data from Google Trend');
+                                $('#progress-1,#progress-2').each(function(){
+                                    for (let index = 1; index <= 100; index++) {
+                                        $(this).css('width',index+'%')
+                                    }
+                                })
+                                break;
+                            case 3:
+                                note.addClass('d-none')
+                                detailProgress.html('3. Normalizing Data');
+                                $('#progress-1,#progress-2,#progress-3').each(function(){
+                                    for (let index = 1; index <= 100; index++) {
+                                        $(this).css('width',index+'%')
+                                    }
+                                })
+                                break;
+                            case 4:
+                                note.addClass('d-none')
+                                $('#progress-1,#progress-2,#progress-3,#progress-4').each(function(){
+                                    for (let index = 1; index <= 100; index++) {
+                                        $(this).css('width',index+'%')
+                                    }
+                                })
+                                detailProgress.html('4. Preparing Result');
+                                break
+                        }
+                        detailProgress.data('status', response.status)
+                    }
+                    
+                    if(response.status != 4 && response.status != 0 ){
+                        check()
+                    }
+                }catch(error){
                     console.log(error);
-               }
-           }
+                }
+            }
+           }())
+           
        </script>
     </body>
 </html>

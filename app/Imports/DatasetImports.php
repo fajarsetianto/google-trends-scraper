@@ -25,7 +25,7 @@ class DatasetImports implements ToCollection,WithChunkReading, WithCustomValueBi
         Validator::make(['dataset' => $rows->toArray()], [
             'dataset' => ['min:1'],
             'dataset.*.start_date' => ['required','date'],
-            'dataset.*.end_date' => ['bail','required','date', 'after:dataset.*.start_date'],
+            'dataset.*.end_date' => ['bail','required','date', 'after_or_equal:dataset.*.start_date'],
             'dataset.*.value' => ['required','numeric']]
         )->validate();
 

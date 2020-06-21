@@ -14,6 +14,5 @@ class Queue extends Model
         'dataset' => 'array',
         'periods' => 'array',
         'keywords' => 'array',
-        'is_finished' => 'boolean'
     ];
 }

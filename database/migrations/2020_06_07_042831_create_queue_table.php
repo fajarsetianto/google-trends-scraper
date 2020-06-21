@@ -15,12 +15,21 @@ class CreateQueueTable extends Migration
     {
         Schema::create('queue', function (Blueprint $table) {
             $table->bigIncrements('id');
-            $table->boolean('is_finished')->default(0);
+            $table->tinyInteger('status')->default(1);
             $table->longText('dataset');
             $table->integer('category');
             $table->longText('keywords');
             $table->timestamps();
         });
+
+        /*
+        status detail 
+        0 => fail
+        1 => add to queue
+        2 => fetching data
+        3 => Normalization
+        4 => finish
+        */
     }
 
     /**

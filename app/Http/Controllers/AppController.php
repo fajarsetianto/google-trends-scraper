@@ -71,9 +71,9 @@ class AppController extends Controller{
             'dataset' => $dataSet->toArray(),
             'keywords' => $input['keyword'],
             'category' => $input['kategori'],
-            'is_finished' => 0,
         ]);
         FetchGoogleTrend::dispatch($queue);
+
         return view('search', compact('queue'));
     }
 
@@ -104,18 +104,23 @@ class AppController extends Controller{
         $data = $g->finterestBySubregion(['corona'], 'WEEK' ,0 , '2019-06-08 2020-06-08');
         dd($data);
     }
-
+ 
     public function jobs(Queue $queue){
         // logger('info', $queue->toArray());
-        if($queue->is_finished){
-            return response()->json([
-                'is_finished' => $queue->is_finished,
-                'dataset' => $queue->dataset
-            ],200);
+        switch($queue->status){
+            case 1:
+                return response()->json([
+                 'status' => $queue->status,
+                 'jobs_a_head' => Queue::whereNotIn('status',[0,4])->where('created_at','<', $queue->created_at)->count()
+                ],200);
+                break;
+            case 4:
+                return response()->json($queue->only(['dataset','status']),200);
+                break;
+            default:
+                return response()->json($queue->only(['status']),200);
+                break;
         }
-        return response()->json([
-            'is_finished' => $queue->is_finished,
-        ],200);
     }
 
    
