@@ -32,7 +32,8 @@ class AppController extends Controller{
         ]);
     }
     public function index(){
-        $categories = $this->gTrends->getCategories()['children'];
+        $categories = collect($this->gTrends->getCategories()['children'])->prepend(['name'=> 'semua kategori','id'=>0]);
+        // dd($categories);
         return view('home', compact('categories'));
         
     }
@@ -68,7 +69,7 @@ class AppController extends Controller{
         });
 
         $queue = Queue::create([
-            'dataset' => $dataSet->toArray(),
+            'dataset' => $dataSet->values(),
             'keywords' => $input['keyword'],
             'category' => $input['kategori'],
         ]);
