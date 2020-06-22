@@ -78,7 +78,7 @@ class GoogleTrendController extends Controller
             $results->dataSet = $results->dataSet->map(function($data) use ($items, $keyword){
                 $data[str_replace(' ', '', $keyword)] = $items->where('date', $data['date'])->first()['value'];
                 return $data;
-            });
+            }); 
         }
             
         $results->corelations = $results->corelations->map(function($corelation) use ($results){
@@ -102,7 +102,8 @@ class GoogleTrendController extends Controller
             });
             $sigmaY22 = pow($sigmaY,2);
             
-            $corelation['value'] = (($n * $sigmaXY) - $sigmaXsigmaY) / ((sqrt(($n*$sigmaX2) - $sigmaX22) * (sqrt(($n*$sigmaY2) - $sigmaY22))));
+            // $corelation['value'] = (($n * $sigmaXY) - $sigmaXsigmaY) / ((sqrt(($n*$sigmaX2) - $sigmaX22) * (sqrt(($n*$sigmaY2) - $sigmaY22))));
+            (($n * $sigmaXY) - $sigmaXsigmaY) / ((sqrt(($n*$sigmaX2) - pow($sigmaX2,2)) * (sqrt(($n*$sigmaY2) - pow($sigmaY2,2)))));
             
             return $corelation;
         });

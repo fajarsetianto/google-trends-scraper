@@ -190,7 +190,7 @@
             async function check(){
                 try{
                     let response = await $.get('{{route("queue",[$queue->id])}}')
-                    if(response.status != detailProgress.data('status') || response.status == 1){
+                    // if(response.status != detailProgress.data('status') || response.status == 1){
                         
                         switch(response.status){
                             case 0:
@@ -231,10 +231,11 @@
                                     }
                                 })
                                 detailProgress.html('4. Preparing Result');
+                                window.location.replace('{{route("results",[$queue->id])}}');
                                 break
                         }
-                        detailProgress.data('status', response.status)
-                    }
+                        // detailProgress.data('status', response.status)
+                    // }
                     
                     if(response.status != 4 && response.status != 0 ){
                         check()

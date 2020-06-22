@@ -17,6 +17,7 @@ class CreateQueueTable extends Migration
             $table->bigIncrements('id');
             $table->tinyInteger('status')->default(1);
             $table->longText('dataset');
+            $table->longText('corelation')->nullable();
             $table->integer('category');
             $table->longText('keywords');
             $table->timestamps();

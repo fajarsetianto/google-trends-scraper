@@ -14,5 +14,6 @@ class Queue extends Model
         'dataset' => 'array',
         'periods' => 'array',
         'keywords' => 'array',
+        'corelation' => 'array',
     ];
 }

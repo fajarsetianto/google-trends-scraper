@@ -74,7 +74,60 @@ class AppController extends Controller{
         ]);
         FetchGoogleTrend::dispatch($queue);
 
-        return view('search', compact('queue'));
+        return redirect()->route('progress', [$queue->id]);
+    }
+
+    public function progress(Queue $queue){
+        switch($queue->status){
+            case 0:
+                break;
+            case 4:
+                return redirect()->route('results', [$queue->id]);
+                break;
+            default:
+                return view('progress', compact('queue'));
+                break;
+        }
+    }
+
+    public function results(Queue $queue){
+        switch($queue->status){
+            case 0:
+                break;
+            case 4:
+                // $corelation = collect();
+                // $dataset = collect($queue->dataset);
+                // $realCases = $dataset->pluck('value');
+                // $n = $realCases->count();
+                // $sigmaX = $realCases->sum();
+                // $sigmaX2 = $realCases->sum(function($value){
+                //     return pow($value,2);
+                // });
+
+                // foreach($queue->keywords as $keyword){
+                //     $currentTrendData = $dataset->pluck('keywords.'.$keyword);
+                    
+                //     $sigmaY = $currentTrendData->sum();
+                //     $sigmaY2 = $currentTrendData->sum(function($value){
+                //         return pow($value,2);
+                //     });
+                //     dd($currentTrendData->zip($realCases)->map(function($item){return '('.$item[0].','.$item[1].')';})->implode(' '));
+                //     $sigmaXY = $currentTrendData->zip($realCases)->sum(function($item){
+                //         return $item[0] * $item[1];
+                //     });
+                //     $top = ($sigmaXY - (($sigmaX * $sigmaY) / $n));
+                //     $bottom = sqrt(($sigmaX2 - (pow($sigmaX,2) / $n)) * ($sigmaY2 - (pow($sigmaY,2) / $n)));
+                    
+                //     $corelation[$keyword] = $top / ($bottom != 0 ? $bottom : 1);
+                //     // $corelation[$keyword] = ($sigmaXY - (($sigmaX * $sigmaY) / $n)) / sqrt(($sigmaX2 - (pow($sigmaX,2) / $n)) * ($sigmaY2 - (pow($sigmaY,2) / $n)));
+                // }
+                dd($queue->dataset);
+                return view('results', compact('queue'));
+                break;
+            default:
+                return redirect()->route('progress',[$queue->id]);
+                break;
+        }
     }
 
     public function getSuggestion(Request $request){
@@ -106,16 +159,12 @@ class AppController extends Controller{
     }
  
     public function jobs(Queue $queue){
-        // logger('info', $queue->toArray());
         switch($queue->status){
             case 1:
                 return response()->json([
                  'status' => $queue->status,
                  'jobs_a_head' => Queue::whereNotIn('status',[0,4])->where('created_at','<', $queue->created_at)->count()
                 ],200);
-                break;
-            case 4:
-                return response()->json($queue->only(['dataset','status']),200);
                 break;
             default:
                 return response()->json($queue->only(['status']),200);
