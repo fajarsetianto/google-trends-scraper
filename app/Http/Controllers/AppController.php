@@ -121,7 +121,7 @@ class AppController extends Controller{
                 //     $corelation[$keyword] = $top / ($bottom != 0 ? $bottom : 1);
                 //     // $corelation[$keyword] = ($sigmaXY - (($sigmaX * $sigmaY) / $n)) / sqrt(($sigmaX2 - (pow($sigmaX,2) / $n)) * ($sigmaY2 - (pow($sigmaY,2) / $n)));
                 // }
-                dd($queue->dataset);
+                // dd($queue->corelation);
                 return view('results', compact('queue'));
                 break;
             default:

@@ -22,7 +22,7 @@
        <header>
             <nav class="navbar fixed-top navbar-expand-lg navbar-dark bg-primary scrolling-navbar">
             <a class="navbar-brand" href="{{url('/')}}"><strong>GTrend</strong></a>
-                <form action="{{url('/cari')}}" class="inline-form rounded py-1 w-100" method="POST" enctype="multipart/form-data">
+                {{-- <form action="{{url('/cari')}}" class="inline-form rounded py-1 w-100" method="POST" enctype="multipart/form-data">
                   @csrf  
                   <div class="row justify-content-center">
                        <div class="col-md-6 pr-0" style="margin-right:-1px">
@@ -46,7 +46,7 @@
                           <button type="submit" class="btn btn-md btn-white my-0 btn-primary px-5">Cari</button>
                        </div>
                     </div>
-                 </form>
+                 </form> --}}
             </nav>
                 
        </header>
@@ -55,7 +55,7 @@
               <div class="col-md-12">
                     <div class="card">
                         <div class="card-header">
-                           Korelasi Google trend "<i>{{$results->corelations->pluck('keyword')->join(', ',' dan')}}</i>"
+                           Korelasi Google trend "<i>{{collect($queue->keywords)->join(', ',' dan')}}</i>"
                         </div>
                         <div class="card-body">
                                 <canvas id="myChart"></canvas>
@@ -69,15 +69,15 @@
                                            <table class="table">
                                                  <thead>
                                                     <tr>
-                                                       @foreach($results->corelations as $corelation)
-                                                          <th>{{$corelation['keyword']}}</th>
+                                                       @foreach($queue->corelation as $key => $corelation)
+                                                          <th>{{$key}}</th>
                                                         @endforeach
                                                     </tr>
                                                  </thead>
                                                  <tbody>
                                                     <tr>
-                                                       @foreach($results->corelations as $corelation)
-                                                          <td>{{$corelation['value']}}</td>
+                                                       @foreach($queue->corelation as $value)
+                                                          <td>{{$value}}</td>
                                                        @endforeach
                                                     </tr>
                                                  </tbody>
@@ -126,13 +126,20 @@
       <script type="text/javascript" src="{{asset('vendor/mdb/js/bootstrap.min.js')}}"></script>
       <!-- MDB core JavaScript -->
       <script type="text/javascript" src="{{asset('vendor/mdb/js/mdb.min.js')}}"></script>
-      <script src="https://cdnjs.cloudflare.com/ajax/libs/bootstrap-datepicker/1.8.0/js/bootstrap-datepicker.js"></script>
-      <script src="https://cdnjs.cloudflare.com/ajax/libs/bootstrap-datepicker/1.8.0/locales/bootstrap-datepicker.id.min.js"></script>
+      <script src="https://momentjs.com/downloads/moment-with-locales.min.js"></script>
       
       <script>
 
-         var keywords = {!!json_encode($results->corelations->pluck('keyword'))!!};
-         var dataSets = {!!json_encode($results->dataSet)!!};
+         var keywords = {!!json_encode($queue->keywords)!!};
+         var dataSets = {!!json_encode($queue->dataset)!!};
+         var labels = dataSets.map(function(data){
+            if(data.start_date == data.end_date){
+               data = moment(data.start_date).format('D/M/YY');
+            }else{
+               data = moment(data.start_date).format('D/M/YY')+ ' s.d '+ moment(data.end_date).format('D/M/YY');
+            }
+            return data;
+         })
          var data = [];
 
          data.push({
@@ -141,7 +148,7 @@
                backgroundColor : 'red',
                borderColor: 'red',
                data : dataSets.map(function(val, index){
-                     return val['cases'];
+                     return val['value'];
                   })
             })
          var dynamicColors = function() {
@@ -152,7 +159,7 @@
          };
          keywords.forEach(function(keyword){
             var filtered = dataSets.map(function(val, index){
-               return val[keyword.replace(/ /g,'')];
+               return val['keywords'][keyword];
             })
             var color = dynamicColors();
             data.push({
@@ -164,32 +171,32 @@
                data : filtered
             })
          });
+
+
          var config = {
 			type: 'line',
 			data: {
-				labels: {!!json_encode($results->dataSet->pluck('formatedDate')->toArray())!!},
-				datasets: data
+				labels: labels,
+				datasets: data,
+            lineTension: 0.2  
 			},
 			options: {
 				responsive: true,
 				title: {
-					display: true,
-					text: "Grafik Korelasi {!!$results->corelations->pluck('keyword')->join(', ',' dan')!!}"
-				},
+             	display: true,
+               text: "Grafik Korelasi {!!collect($queue->keywords)->join(', ',' dan')!!}"
+            },
 				scales: {
 					xAxes: [{
 						display: true,
-                  beginAtZero: true,
-						ticks: {
-							callback: function(dataLabel, index) {
-								// Hide the label of every 2nd dataset. return null to hide the grid line too
-								return dataLabel;
-							}
-						}
 					}],
 					yAxes: [{
 						display: true,
-						beginAtZero: true
+						ticks: {
+                     beginAtZero: true,
+                     max: 100,
+                     min: 0
+                  }
 					}]
 				}
 			}
@@ -198,15 +205,15 @@
          
          var myChart = new Chart(ctx, config);
              
-         $('#triggerCustomDates').click(function(){
-             $('#customDatesModal').modal('show')
-         })
+         // $('#triggerCustomDates').click(function(){
+         //     $('#customDatesModal').modal('show')
+         // })
 
-         $('#pickadate').datepicker({
-            format: "dd-M-yyyy",
-            autoclose: true,
-            language: "id"
-         });
+         // $('#pickadate').datepicker({
+         //    format: "dd-M-yyyy",
+         //    autoclose: true,
+         //    language: "id"
+         // });
       </script>
       
       

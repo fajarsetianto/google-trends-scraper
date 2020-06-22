@@ -47,7 +47,7 @@ class FetchGoogleTrend implements ShouldQueue
         */
         $googleTrend->setOptions([
             'hl'  => 'id',
-            'tz'  => -60, # last hour
+            'tz'  => -420,
             'geo' => 'ID',
         ]);
 
@@ -77,6 +77,7 @@ class FetchGoogleTrend implements ShouldQueue
             if(is_array($monthly)){
                 $monthly = collect($monthly['TIMESERIES']);
                 if($monthly->isNotEmpty()){
+                    $monthly = $keyword->count() > 1 ? $this->normalize($monthly,$keyword) : $monthly;
                     $monthly = $monthly->mapWithKeys(function($data){
                         return [Carbon::createFromTimestamp($data['time'])->format('Y-m') => $data];
                     });
@@ -96,6 +97,12 @@ class FetchGoogleTrend implements ShouldQueue
                                 $daily = $daily->groupBy(function($data){
                                     return Carbon::createFromTimestamp($data['time'])->format('Y-m');
                                 });
+                                
+
+                                $daily = $daily->map(function($data) use ($keyword){
+                                    return $this->normalize($data, $keyword);
+                                });
+                                
                                 // normalize daily data against monthly data;
                                 $formatedDaily = [];
                                 //lopping troguh daily group as month
@@ -117,6 +124,7 @@ class FetchGoogleTrend implements ShouldQueue
                                         }
                                     }
                                 }
+
                                 //need to be find the best algorithm for saving this varaible bellow
                                 $dataset = $dataset->map(function($data) use ($formatedDaily, $keyword){
                                     $currentStartDate = $data['start_date'];
@@ -257,6 +265,23 @@ class FetchGoogleTrend implements ShouldQueue
     public function failed(Exception $exception)
     {
         $this->currentQueue->update(['status' => 0]);
+    }
+
+    protected function normalize($dataset, $keyword){
+        
+        $max = collect();
+        foreach($keyword as $key => $value){
+            $temp = $dataset->max('value.'.$key);
+            $max[$key] = $temp == 0 ? 1 : $temp;
+        }
+        $dataset = $dataset->map(function($data) use ($max){
+            foreach($max as $key => $value){
+                $data['value'][$key] = (100/$value) * $data['value'][$key];
+            }
+            return $data;
+        });
+        return $dataset;
+
     }
 
 }
