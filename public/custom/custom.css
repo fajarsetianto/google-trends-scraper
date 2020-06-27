@@ -9,7 +9,7 @@
     width: 100%;
     height: calc(1.5em + .75rem + 2px);
     padding: .375rem .75rem;
-    font-size: 1rem;
+    font-size: inherit;
     font-weight: 400;
     line-height: 1.5;
     color: #495057;
@@ -43,7 +43,7 @@
     
     padding: 10px;
     height: 100%;
-    
+    width: 100%;
     display: block;
 }
 
@@ -60,6 +60,7 @@
 
 .custom__menu {
     position: relative;
+    cursor: pointer;
 }
 
 .custom__menu .custom__menu__container {
@@ -72,6 +73,22 @@
     max-height: 275px;
     overflow: auto;
     background-color: #ffffff;
+    border: 1px solid rgba(0,0,0,.125);
+}
+.custom__menu .custom__menu__container .list-group {
+    border:none;
+}
+
+
+
+.bootstrap-tagsinput{
+    padding: .375rem .75rem;
+    line-height: 1.5;
+}
+.bootstrap-tagsinput .badge {
+    margin: 2px;
+    font-size:inherit;
+    padding: 3px 8px;
 }
 
 

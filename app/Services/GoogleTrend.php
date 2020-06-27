@@ -8,6 +8,9 @@ use Laminas\Http\Client\Adapter\Curl;
 use Zend\Stdlib\Parameters;
 
 class GoogleTrend extends GTrends{
+
+
+    
     public function explore($keyWordList, $category=0, $time='today 12-m', $property='', array $widgetIds = ['*'], $sleep=0.5)
     {
         
@@ -141,6 +144,7 @@ class GoogleTrend extends GTrends{
         return $results;
     }
 
+
     public function _getData($uri, $method, array $params=[])
     {
         if ($method != 'GET' AND $method != 'POST') {
@@ -153,8 +157,8 @@ class GoogleTrend extends GTrends{
         $cookieJar = tempnam(storage_path('tmp'),'cookie');
         $client->setOptions([
             'adapter' => Curl::class,
-            // 'proxy_host' => '36.90.181.227',
-            // 'proxy_port' => 80,
+            // 'proxy_host' => $this->proxy['ip'],
+            // 'proxy_port' => $this->proxy['port'],
             'curloptions' => [
                 CURLOPT_COOKIEJAR => $cookieJar,
             ],

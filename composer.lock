@@ -4,8 +4,57 @@
         "Read more about it at https://getcomposer.org/doc/01-basic-usage.md#installing-dependencies",
         "This file is @generated automatically"
     ],
-    "content-hash": "d5c25499565d7cb714e4a3d08f37b71c",
+    "content-hash": "214b14066d6a4cb8fc09a7c2b7730b53",
     "packages": [
+        {
+            "name": "aalfiann/pubproxy-class-php",
+            "version": "1.2.0",
+            "source": {
+                "type": "git",
+                "url": "https://github.com/aalfiann/pubproxy-class-php.git",
+                "reference": "3a280a91e646f0df910697253b0d445bbf6e6fa8"
+            },
+            "dist": {
+                "type": "zip",
+                "url": "https://api.github.com/repos/aalfiann/pubproxy-class-php/zipball/3a280a91e646f0df910697253b0d445bbf6e6fa8",
+                "reference": "3a280a91e646f0df910697253b0d445bbf6e6fa8",
+                "shasum": ""
+            },
+            "require": {
+                "php": ">=5.4"
+            },
+            "type": "library",
+            "autoload": {
+                "psr-4": {
+                    "aalfiann\\": "src/"
+                }
+            },
+            "notification-url": "https://packagist.org/downloads/",
+            "license": [
+                "MIT"
+            ],
+            "authors": [
+                {
+                    "name": "M ABD AZIZ ALFIAN",
+                    "email": "aalfiann@gmail.com",
+                    "homepage": "https://github.com/aalfiann",
+                    "role": "Developer"
+                }
+            ],
+            "description": "Get working public proxy list for free by PubProxy (No API key required).",
+            "keywords": [
+                "anonymous",
+                "elite",
+                "free-proxy",
+                "http-proxy",
+                "proxy",
+                "proxy-list",
+                "public-proxy",
+                "scan-proxy",
+                "socks-proxy"
+            ],
+            "time": "2019-05-11T04:37:14+00:00"
+        },
         {
             "name": "container-interop/container-interop",
             "version": "1.2.0",

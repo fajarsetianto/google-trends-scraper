@@ -11,7 +11,11 @@
 |
 */
 
-Route::get('/', 'AppController@index');
+Route::get('/', 'AppController@index')->name('home');
+
+Route::get('/1',function(){
+    return view('pages.new');
+});
 
 Route::post('/cari', 'GoogleTrendController@find');
 Route::post('/search', 'AppController@search')->name('search');

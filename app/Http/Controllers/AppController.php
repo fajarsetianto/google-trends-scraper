@@ -32,13 +32,22 @@ class AppController extends Controller{
         ]);
     }
     public function index(){
-        $categories = collect($this->gTrends->getCategories()['children'])->prepend(['name'=> 'semua kategori','id'=>0]);
+        // dd($this->gTrends->_getProxy());
+        // $data = collect(json_decode($this->gTrends->_getProxy()));
+        // return $data->toJson();
+        
+        // dd('a');
+        // dd(json_decode($this->gTrends->proxy));
+        $categories = collect($this->gTrends->getCategories()['children'])->prepend(['name'=> 'Semua Kategori','id'=>0]);
         // dd($categories);
-        return view('home', compact('categories'));
+        return view('pages.new', compact('categories'));
         
     }
 
+    
+
     public function search(Request $request, DatasetImports $import){
+        
         $categories = $this->flatten($this->gTrends->getCategories());    
         $input = $request->all();
         $input['keyword'] = $input['keyword'] == null ? null: explode(',', $input['keyword']); 
@@ -79,6 +88,7 @@ class AppController extends Controller{
     }
 
     public function progress(Queue $queue){
+        // return view('pages.progress', compact('queue'));
         switch($queue->status){
             case 0:
                 break;
@@ -86,7 +96,7 @@ class AppController extends Controller{
                 return redirect()->route('results', [$queue->id]);
                 break;
             default:
-                return view('progress', compact('queue'));
+                return view('pages.progress', compact('queue'));
                 break;
         }
     }
@@ -123,7 +133,7 @@ class AppController extends Controller{
                 //     // $corelation[$keyword] = ($sigmaXY - (($sigmaX * $sigmaY) / $n)) / sqrt(($sigmaX2 - (pow($sigmaX,2) / $n)) * ($sigmaY2 - (pow($sigmaY,2) / $n)));
                 // }
                 // dd($queue->corelation);
-                return view('results', compact('queue'));
+                return view('pages.results', compact('queue'));
                 break;
             default:
                 return redirect()->route('progress',[$queue->id]);
