@@ -98,11 +98,11 @@ class FetchGoogleTrend implements ShouldQueue
                         $keywordDaily = $keywordDaily->merge($periodDaily);
                         
                     }else{
-                        throw new Exception('daily data empty');
+                        throw new Exception('Error, Google Trends response with empty data for "'.$keyword.'" at period '.$period['start_date']->format('Y-m-d').' - '.$period['end_date']->format('Y-m-d'));
                     }
                 }else{
                     //daily error;
-                    throw new Exception('daily data error');
+                    throw new Exception('Error while try to fetch "'.$keyword.'" at period '.$period['start_date']->format('Y-m-d').' - '.$period['end_date']->format('Y-m-d'));
                 }
             }
             $keywordDaily = $keywordDaily->collapse();
@@ -135,31 +135,31 @@ class FetchGoogleTrend implements ShouldQueue
             return $data;
         });
 
-        $corelation = collect();        
-        $realCases = $dataset->pluck('value');
-        $n = $realCases->count();
-        $sigmaX = $realCases->sum();
-        $sigmaX2 = $realCases->sum(function($value){
-            return pow($value,2);
-        });
-        foreach(collect($this->currentQueue->keywords) as $keyword){
-            $currentTrendData = $dataset->pluck('keywords.'.$keyword);                    
-            $sigmaY = $currentTrendData->sum();
-            $sigmaY2 = $currentTrendData->sum(function($value){
-                return pow($value,2);
-            });
-            $sigmaXY = $currentTrendData->zip($realCases)->sum(function($item){
-                return $item[0] * $item[1];
-            });
-            $top = ($sigmaXY - (($sigmaX * $sigmaY) / $n));
-            $bottom = sqrt(($sigmaX2 - (pow($sigmaX,2) / $n)) * ($sigmaY2 - (pow($sigmaY,2) / $n)));                            
-            $corelation[$keyword] = $top / ($bottom != 0 ? $bottom : 1);
-            // $corelation[$keyword] = ($sigmaXY - (($sigmaX * $sigmaY) / $n)) / (sqrt(($sigmaX2 - ((pow($sigmaX,2) / $n) ?? 1)) * ($sigmaY2 - ((pow($sigmaY,2) / $n) ?? 1))) ?? 1);
-        }
+        // $corelation = collect();        
+        // $realCases = $dataset->pluck('value');
+        // $n = $realCases->count();
+        // $sigmaX = $realCases->sum();
+        // $sigmaX2 = $realCases->sum(function($value){
+        //     return pow($value,2);
+        // });
+        // foreach(collect($this->currentQueue->keywords) as $keyword){
+        //     $currentTrendData = $dataset->pluck('keywords.'.$keyword);                    
+        //     $sigmaY = $currentTrendData->sum();
+        //     $sigmaY2 = $currentTrendData->sum(function($value){
+        //         return pow($value,2);
+        //     });
+        //     $sigmaXY = $currentTrendData->zip($realCases)->sum(function($item){
+        //         return $item[0] * $item[1];
+        //     });
+        //     $top = ($sigmaXY - (($sigmaX * $sigmaY) / $n));
+        //     $bottom = sqrt(($sigmaX2 - (pow($sigmaX,2) / $n)) * ($sigmaY2 - (pow($sigmaY,2) / $n)));                            
+        //     $corelation[$keyword] = $top / ($bottom != 0 ? $bottom : 1);
+        //     // $corelation[$keyword] = ($sigmaXY - (($sigmaX * $sigmaY) / $n)) / (sqrt(($sigmaX2 - ((pow($sigmaX,2) / $n) ?? 1)) * ($sigmaY2 - ((pow($sigmaY,2) / $n) ?? 1))) ?? 1);
+        // }
 
         $this->currentQueue->update([
             'dataset' => $dataset,
-            'corelation' => $corelation,
+            // 'corelation' => $corelation,
             'status' => 4
         ]);
     }
