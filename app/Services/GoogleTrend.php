@@ -16,7 +16,7 @@ class GoogleTrend extends GTrends{
         $payload = [
             'hl' => $this->options['hl'],
             'tz' => $this->options['tz'],
-            'req' => Json\Json::encode([
+            'req' => Json::encode([
                 'comparisonItem' => [
                     [
                         'keyword' => $kWord,
@@ -31,7 +31,7 @@ class GoogleTrend extends GTrends{
         $data = $this->_getData(self::GENERAL_ENDPOINT, 'GET', $payload);
         if ($data) {
 
-            $widgets = Json\Json::decode(trim(substr($data, 4)), Json\Json::TYPE_OBJECT)->widgets;
+            $widgets = Json::decode(trim(substr($data, 4)), Json::TYPE_OBJECT)->widgets;
 
             foreach ($widgets as $widget) {
 
@@ -39,13 +39,13 @@ class GoogleTrend extends GTrends{
 
                     $interestOverTimePayload['hl'] = $this->options['hl'];
                     $interestOverTimePayload['tz'] = $this->options['tz'];
-                    $interestOverTimePayload['req'] = Json\Json::encode($widget->request);
+                    $interestOverTimePayload['req'] = Json::encode($widget->request);
                     $interestOverTimePayload['token'] = $widget->token;
 
                     $data = $this->_getData(self::INTEREST_OVER_TIME_ENDPOINT, 'GET', $interestOverTimePayload);
                     if ($data) {
 
-                        return Json\Json::decode(trim(substr($data, 5)), Json\Json::TYPE_ARRAY)['default']['timelineData'];
+                        return Json::decode(trim(substr($data, 5)), Json::TYPE_ARRAY)['default']['timelineData'];
                     } else {
                         logger($data);
                         return false;
