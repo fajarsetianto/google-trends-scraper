@@ -11,137 +11,50 @@ class GoogleTrend extends GTrends{
 
 
     
-    public function explore($keyWordList, $category=0, $time='today 12-m', $property='', array $widgetIds = ['*'], $sleep=0.5)
+    public function interestOverTime($kWord, $category=0, $time='now 4-H', $property='')
     {
-        
-        if (null !== $keyWordList && ! is_array($keyWordList)) {
-            $keyWordList = [$keyWordList];
-        }
-
-        if (null === $keyWordList) {
-            $comparisonItem[] = ['geo' => $this->options['geo'], 'time' => $time];
-        } else {
-            if (count($keyWordList) == 0 OR count($keyWordList) > 5) {
-
-                throw new \Exception('Invalid number of items provided in keyWordList');
-            }
-
-            $comparisonItem = [];
-            foreach ($keyWordList as $kWord) {
-
-                $comparisonItem[] = ['keyword' => $kWord, 'geo' => $this->options['geo'], 'time' => $time];
-            }
-        }
-
         $payload = [
             'hl' => $this->options['hl'],
             'tz' => $this->options['tz'],
-            'req' => Json::encode(['comparisonItem' => $comparisonItem, 'category' => $category, 'property' => $property]),
+            'req' => Json\Json::encode([
+                'comparisonItem' => [
+                    [
+                        'keyword' => $kWord,
+                        'geo' => $this->options['geo'],
+                        'time' => $time,
+                    ],
+                ],
+                'category' => $category,
+                'property' => $property,
+            ]),
         ];
-
         $data = $this->_getData(self::GENERAL_ENDPOINT, 'GET', $payload);
-        
+        if ($data) {
 
-        if (! $data) {
+            $widgets = Json\Json::decode(trim(substr($data, 4)), Json\Json::TYPE_OBJECT)->widgets;
 
-            return false;
-        }
+            foreach ($widgets as $widget) {
 
-        $widgetsArray = Json::decode(trim(substr($data, 5)), Json::TYPE_ARRAY)['widgets'];
-        $results = [];
-        foreach ($widgetsArray as $widget) {
+                if ($widget->id == 'TIMESERIES') {
 
-            $widgetEnabled = false !== array_search('*', $widgetIds) || in_array($widget['id'], $widgetIds, true);
+                    $interestOverTimePayload['hl'] = $this->options['hl'];
+                    $interestOverTimePayload['tz'] = $this->options['tz'];
+                    $interestOverTimePayload['req'] = Json\Json::encode($widget->request);
+                    $interestOverTimePayload['token'] = $widget->token;
 
-            if (! $widgetEnabled) {
+                    $data = $this->_getData(self::INTEREST_OVER_TIME_ENDPOINT, 'GET', $interestOverTimePayload);
+                    if ($data) {
 
-                continue;
-            }
-
-            if ($widget['id'] === 'TIMESERIES') {
-                $interestOverTimePayload['hl'] = $this->options['hl'];
-                $interestOverTimePayload['tz'] = $this->options['tz'];
-                $interestOverTimePayload['req'] = Json::encode($widget['request']);
-                $interestOverTimePayload['token'] = $widget['token'];
-
-                $data = $this->_getData(self::INTEREST_OVER_TIME_ENDPOINT, 'GET', $interestOverTimePayload);
-                if ($data) {
-
-                    $results['TIMESERIES'] = Json::decode(trim(substr($data, 5)), Json::TYPE_ARRAY)['default']['timelineData'];
-                } else {
-
-                    $results['TIMESERIES'] = false;
-                }
-            }
-
-            if (strpos($widget['id'], 'GEO_MAP') === 0) {
-
-                $interestBySubregionPayload['hl'] = $this->options['hl'];
-                $interestBySubregionPayload['tz'] = $this->options['tz'];
-                $interestBySubregionPayload['req'] = Json::encode($widget['request']);
-                $interestBySubregionPayload['token'] = $widget['token'];
-
-                $data = $this->_getData(self::INTEREST_BY_SUBREGION_ENDPOINT, 'GET', $interestBySubregionPayload);
-                if ($data) {
-
-                    $queriesArray = Json::decode(trim(substr($data, 5)), Json::TYPE_ARRAY);
-
-                    if (isset($widget['bullets'])) {
-                        $queriesArray['bullets'] = $widget['bullets'];
-                    }
-
-                    $results['GEO_MAP'][$widget['bullet'] ?? ''] = $queriesArray;
-                } else {
-
-                    $results['GEO_MAP'] = false;
-                }
-            }
-
-            if ($widget['id'] === 'RELATED_QUERIES') {
-
-                $kWord = $widget['request']['restriction']['complexKeywordsRestriction']['keyword'][0]['value'] ?? null;
-                $relatedPayload['hl'] = $this->options['hl'];
-                $relatedPayload['tz'] = $this->options['tz'];
-                $relatedPayload['req'] = Json::encode($widget['request']);
-                $relatedPayload['token'] = $widget['token'];
-                $data = $this->_getData(self::RELATED_QUERIES_ENDPOINT, 'GET', $relatedPayload);
-                if ($data) {
-
-                    $queriesArray = Json::decode(trim(substr($data, 5)), Json::TYPE_ARRAY);
-
-                    if (null === $kWord || count($keyWordList) === 1) {
-
-                        $results['RELATED_QUERIES'] = $queriesArray;
+                        return Json\Json::decode(trim(substr($data, 5)), Json\Json::TYPE_ARRAY)['default']['timelineData'];
                     } else {
-
-                        $results['RELATED_QUERIES'][$kWord] = $queriesArray;
+                        logger($data);
+                        return false;
                     }
-                } else {
-
-                    $results['RELATED_QUERIES'] = false;
                 }
             }
-
-            if ($widget['id'] === 'RELATED_TOPICS') {
-                $relatedPayload['hl'] = $this->options['hl'];
-                $relatedPayload['tz'] = $this->options['tz'];
-                $relatedPayload['req'] = Json::encode($widget['request']);
-                $relatedPayload['token'] = $widget['token'];
-
-                $data = $this->_getData(self::RELATED_QUERIES_ENDPOINT, 'GET', $relatedPayload);
-                if ($data) {
-
-                    $results['RELATED_TOPICS'] = Json::decode(trim(substr($data, 5)), Json::TYPE_ARRAY);
-                } else {
-
-                    $results['RELATED_TOPICS'] = false;
-                }
-            }
-
-            usleep($sleep * 1000 * 1000);
         }
 
-        return $results;
+        return false;
     }
 
 
