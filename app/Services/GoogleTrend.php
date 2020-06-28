@@ -2,7 +2,7 @@
 namespace App\Services;
 
 use Google\GTrends;
-use Zend\Json\Json;
+use Laminas\Json\Json;
 use Laminas\Http\Client;
 use Laminas\Http\Client\Adapter\Curl;
 use Zend\Stdlib\Parameters;
