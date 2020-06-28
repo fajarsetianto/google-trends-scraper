@@ -42,7 +42,7 @@ class FetchGoogleTrend implements ShouldQueue
      */
     public function handle(GoogleTrend $trend){
         $trend->setOptions([
-            'hl'  => 'id',
+            'hl'  => 'in',
             'tz'  => -420,
             'geo' => 'ID',
         ]);
@@ -61,6 +61,7 @@ class FetchGoogleTrend implements ShouldQueue
                 $debugtime= Carbon::now();
                 // $periodDaily = $trend->explore([$keyword],$this->currentQueue->category, $period['start_date']->format('Y-m-d').' '.$period['end_date']->format('Y-m-d'),'',['TIMESERIES']); 
                 $periodDaily = $trend->interestOverTime($keyword,$this->currentQueue->category, $period['start_date']->format('Y-m-d').' '.$period['end_date']->format('Y-m-d')); 
+                usleep(0.5 * 1000 * 1000);
                 logger($debugtime->diffInRealSeconds(Carbon::now()));
                 if(is_array($periodDaily)){
                     $periodDaily = collect($periodDaily);
