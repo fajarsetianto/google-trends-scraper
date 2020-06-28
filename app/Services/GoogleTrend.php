@@ -53,7 +53,7 @@ class GoogleTrend extends GTrends{
                 }
             }
         }
-
+        logger($data);
         return false;
     }
 
