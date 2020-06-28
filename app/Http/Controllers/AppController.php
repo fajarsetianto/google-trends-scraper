@@ -133,7 +133,8 @@ class AppController extends Controller{
                 //     // $corelation[$keyword] = ($sigmaXY - (($sigmaX * $sigmaY) / $n)) / sqrt(($sigmaX2 - (pow($sigmaX,2) / $n)) * ($sigmaY2 - (pow($sigmaY,2) / $n)));
                 // }
                 // dd($queue->corelation);
-                return view('pages.results', compact('queue'));
+                $categories = collect($this->gTrends->getCategories()['children'])->prepend(['name'=> 'Semua Kategori','id'=>0]);
+                return view('pages.results', compact('queue','categories'));
                 break;
             default:
                 return redirect()->route('progress',[$queue->id]);

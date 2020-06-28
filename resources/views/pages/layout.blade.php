@@ -26,14 +26,14 @@
 	<!-- /core JS files -->
 </head>
 
-<body>
-    <div class="container-fluid" style="background-image: linear-gradient(#00000000, #000000cf),url('{{asset('images/bg.jpg')}}');
-        background-size: 350px;
-        background-blend-mode: luminosity;">
-        @yield('content')
+<body style="background-image: linear-gradient(#00000000, #000000cf),url('{{asset('images/bg.jpg')}}');
+background-size: 350px;
+background-blend-mode: luminosity;">
+    
+    @yield('content')
             
             
-    </div>
+    
     
     @yield('js')
 </body>

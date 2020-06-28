@@ -58,9 +58,12 @@ class FetchGoogleTrend implements ShouldQueue
         foreach($keywords as $keyword){
             $keywordDaily = collect();
             foreach($periods as $period){
-                $periodDaily = $trend->explore([$keyword],$this->currentQueue->category, $period['start_date']->format('Y-m-d').' '.$period['end_date']->format('Y-m-d')); 
+                $debugtime= Carbon::now();
+                // $periodDaily = $trend->explore([$keyword],$this->currentQueue->category, $period['start_date']->format('Y-m-d').' '.$period['end_date']->format('Y-m-d'),'',['TIMESERIES']); 
+                $periodDaily = $trend->interestOverTime($keyword,$this->currentQueue->category, $period['start_date']->format('Y-m-d').' '.$period['end_date']->format('Y-m-d')); 
+                logger($debugtime->diffInRealSeconds(Carbon::now()));
                 if(is_array($periodDaily)){
-                    $periodDaily = collect($periodDaily['TIMESERIES']);
+                    $periodDaily = collect($periodDaily);
                     if($periodDaily->isNotEmpty()){                        
                         $periodDaily = $periodDaily->mapToGroups(function($data){
                           return [
@@ -91,7 +94,7 @@ class FetchGoogleTrend implements ShouldQueue
                                 });
                                 return $grouped;
                             });
-                        }
+                        } 
                         $keywordDaily = $keywordDaily->merge($periodDaily);
                         
                     }else{

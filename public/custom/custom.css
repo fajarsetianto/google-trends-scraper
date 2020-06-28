@@ -82,7 +82,7 @@
 
 
 .bootstrap-tagsinput{
-    padding: .375rem .75rem;
+    /* padding: .375rem .75rem; */
     line-height: 1.5;
 }
 .bootstrap-tagsinput .badge {

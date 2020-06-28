@@ -62,6 +62,7 @@
 @endsection
 
 @section('content')
+<div class="container">
     <div class="d-flex align-items-center" style="min-height: 100vh">
         <div class="container">
             <div class="card">
@@ -100,5 +101,7 @@
             </div>
         </div>
     </div>
+</div>
+    
 @endsection
 

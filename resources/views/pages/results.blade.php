@@ -1,22 +1,66 @@
 @extends('pages.layout')
 
 @section('css')
-
+    <link href="{{asset('vendor/bootstrap-tags-input/tagsinput.css')}}" rel="stylesheet">
+    <link href="{{asset('custom/custom.css')}}" rel="stylesheet">
 @endsection
 
 @section('js')
     <script src="{{asset('vendor/limitless/global_assets/js/plugins/visualization/echarts/echarts.min.js')}}"></script>
     <script src="https://momentjs.com/downloads/moment-with-locales.min.js"></script>
+    <script type="text/javascript" src="{{asset('vendor/bloodhound/bloodhound.js')}}"></script>  
+    <script type="text/javascript" src="{{asset('vendor/bootstrap-tags-input/tagsinput.js')}}"></script>
+    <script type="text/javascript" src="{{asset('custom/custom.js')}}"></script>
     <script>
+        //    $(document).ready(function(){
+                var data = {!!json_encode($categories)!!}
+                $('.category-input').customSelect({
+                    dataOriginal : data
+                });
+            $('.form-input-styled').uniform({
+                fileButtonClass: 'action btn bg-info-400'
+            });
+                var suggestions = new Bloodhound({
+                    datumTokenizer: Bloodhound.tokenizers.obj.whitespace('title'),
+                    queryTokenizer: Bloodhound.tokenizers.whitespace,
+                    remote: {
+                        url: '{{route("suggestion")}}?keyword=' + '%QUERY',
+                        wildcard: '%QUERY',
+                        filter: function(data){
+                            return data.default.topics.map(function(value){
+                                return value.title
+                            })
+                        }
+                    },
+                    
+                });
+                suggestions.initialize();
+
+                var elt = $('#input-tags').tagsinput({
+                    typeaheadjs: {
+                        
+                        source: suggestions.ttAdapter()
+                    }
+                });
+
+                $('body .bootstrap-tagsinput input').on('keypress', function(e){
+                    if(e.keyCode == 13){
+                        e.preventDefault();
+                    }
+                });
+            // })
+    </script>
+    <script>
+        moment.locale('id');
         var dataset = {!!json_encode($queue->dataset)!!}
         var keywords = {!!json_encode($queue->keywords)!!}
         var legends = {!!json_encode($queue->keywords)!!};
         legends.unshift('dataset');
         var labels = dataset.map(function(data){
             if(data.start_date == data.end_date){
-               data = moment(data.start_date).format('D/M/YY');
+               data = moment(data.start_date).format('D MMM YYYY');
             }else{
-               data = moment(data.start_date).format('D/M/YY')+ ' s.d '+ moment(data.end_date).format('D/M/YY');
+               data = moment(data.start_date).format('D MMM YYYY')+ ' - '+ moment(data.end_date).format('D MMM YYYY');
             }
             return data;
         })
@@ -31,6 +75,9 @@
                     borderWidth: 1
                 }
             },
+            lineStyle: {
+                width: 3
+            },
             data : dataset.map(function(val, index){
                 return val['value'];
             })
@@ -44,26 +91,31 @@
                 name: keyword,
                 type: 'line',
                 smooth: true,
-                symbolSize: 6,
+                symbolSize: 4,
                 itemStyle: {
                     normal: {
                         borderWidth: 1
                     }
                 },
+                lineStyle: {
+                    width: 2
+                },
                 data : maped
             })
          });
-
-
-
+         colors = [];
+         h = Math.round(360/legends.length);
+         legends.forEach(function(){
+            colors.push(get_random_color(h))
+            h += h
+         })
+        
         var line_basic_element = document.getElementById('line_basic');
         var line_basic = echarts.init(line_basic_element);
         line_basic.setOption({
-            title: {
-                text: 'ECharts entry example'
-            },
+            
             // Define colors
-            color: ["#424956", "#d74e67", '#0092ff'],
+            color: colors,
 
             // Global text styles
             textStyle: {
@@ -237,41 +289,102 @@
 
                 $('#corellation-list').html('');
                 // console.log(corellation);
-                corellation.forEach(function(value){
+                corellation.forEach(function(value, index){
                     // console.log('loop')
                     $('#corellation-list').append(
-                        $('<li>').addClass('list-group-item').html(
-                            value.key +' '+ value.value
-                        )
+                        $('<li>').addClass('list-group-item').append([
+                            $('<span>').addClass('text-uppercase').html((index+1)+'. '+value.key),
+                            $('<span>').addClass('ml-auto').html(value.value),
+                        ])
                     )
                 });
+                corellationPeriod = moment(currentDataset[0].start_date).format('D MMM YYYY')+' - '+moment(currentDataset[currentDataset.length-1].end_date).format('D MMM YYYY');
+                $('#corellation-period').html(
+                    'period : '+corellationPeriod
+                )
 
             }
 
             calculateCorellation(null,null);
+            function rand(min, max) {
+                return parseInt(Math.random() * (max-min+1), 10) + min;
+            }
+
+            function get_random_color(h) {
+                var h = h; // color hue between 1 and 360
+                var s = rand(30, 100); // saturation 30-100%
+                var l = rand(30, 70); // lightness 30-70%
+                return 'hsl(' + h + ',' + s + '%,' + l + '%)';
+            }
+    </script>
+    <script>
+        
     </script>
 @endsection
 
 @section('content')
+<div class="card container-fluid">
+    <div class="row">
+        <div class="col-md-6">
+            <div class="p-3">
+                <form action="{{route('search')}}" enctype="multipart/form-data" method="POST">
+                    @csrf
+                    <div class="form-group">
+                        <label>Keywords</label>
+                        <div class="d-block">
+                            <input type="text" placeholder="Type Keywords" id="input-tags" name="keyword" value="{{old('keyword') ? implode(',',old('keyword')) : implode(',',$queue->keywords)}}" required/>
+                        </div>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label>Category</label>
+                        <input type="number" value="{{old('kategori') ? old('kategori') : 0}}" name="kategori" class="form-control category-input" required>
+                    </div>
+                    <div class="form-group">
+                        <label>Dataset</label>
+                        <input type="file" name="dataset" class="form-input-styled" required data-fouc accept=".xls,.xlsx">
+                        <span class="form-text text-muted">Accepted formats: xls, xlsx, csv. Max file size 2Mb or <a href="">Download the example dataset</a></span>
+                    </div>
+                    <button type="submit" class="btn btn-info">Submit</button>
+                </form>
+            </div>
+        </div>
+        <div class="col-md-6"></div>
+    </div>
+</div>
+<div class="container">
     <div class="card">
         <div class="card-body">
             <div class="chart-container">
                 <div class="chart has-fixed-height" id="line_basic"></div>
             </div>
+            {{-- <div class="card">
+                <div class="card-header header-elements-inline">
+                    <h4 class="mb-0">Corellation Results</h4>
+                    <div class="header-elements">
+                        <span id="corellation-period"></span>
+                    </div>
+                </div>
+                
+                <ul id="corellation-list" class="list-group list-group-flush border-top"></ul>
+            </div> --}}
         </div>
     </div>
     <div class="row">
-        <div class="col-md-6">
+        <div class="col-md-12">
             <div class="card">
-                <div class="card-header">
-                    <h4>Corellation Results</h4>
+                <div class="card-header header-elements-inline">
+                    <h4 class="mb-0">Corellation Results</h4>
+                    <div class="header-elements">
+                        <span id="corellation-period"></span>
+                    </div>
                 </div>
-                <div class="card-body">
-                    <ul id="corellation-list" class="list-group"></ul>
-                </div>
+                
+                <ul id="corellation-list" class="list-group list-group-flush border-top"></ul>
+                
             </div>
         </div>
-        <div class="col-md-6">
+        {{-- <div class="col-md-6">
             <div class="card">
                 <div class="card-body">
                     <ul class="list-group">
@@ -282,7 +395,10 @@
                 </div>
             </div>
             
-        </div>
+        </div> --}}
     </div>
+</div>
+    
+    
 @endsection
 
