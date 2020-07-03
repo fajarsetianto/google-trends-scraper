@@ -5,6 +5,7 @@ use Google\GTrends;
 use Laminas\Json\Json;
 use Laminas\Http\Client;
 use Laminas\Http\Client\Adapter\Curl;
+use Laminas\Http\Client\Adapter\Proxy;
 use Zend\Stdlib\Parameters;
 
 class GoogleTrend extends GTrends{
@@ -70,13 +71,16 @@ class GoogleTrend extends GTrends{
         $cookieJar = tempnam(storage_path('tmp'),'cookie');
         $client->setOptions([
             'adapter' => Curl::class,
-            // 'proxy_host' => $this->proxy['ip'],
-            // 'proxy_port' => $this->proxy['port'],
+            'proxy_host' => 'proxy-server.scraperapi.com',
+            'proxy_user'=> 'scraperapi',
+            'proxy_pass' => '92ef600e86d13bf3fe4dddb3e039fb08@proxy-server.scraperapi.com',
+            'proxy_port' => '8001',
             'curloptions' => [
                 CURLOPT_COOKIEJAR => $cookieJar,
+                CURLOPT_SSL_VERIFYPEER => false
             ],
             'maxredirects' => 10,
-            'timeout' => 100]);
+            'timeout' => 60]);
         $client->setUri($uri);
         $client->setMethod(strtoupper($method));
 

@@ -11,6 +11,8 @@
 |
 */
 
+use App\Services\Trend;
+
 Route::get('/', 'AppController@index')->name('home');
 
 Route::get('/1',function(){
@@ -29,6 +31,9 @@ Route::get('/development', 'AppController@debug')->name('debug');
 
 Route::post('/fetch', 'AppController@fetch')->name('fetch');
 
-Route::get('/debug', 'AppController@getSuggestion');
+Route::get('/debug', function(){
+    $trend = new Trend();
+    $trend->multiline('dbd', 0,'2012-01-01 2016-12-01');
+});
 
 Route::get('/jobs/{queue}','AppController@jobs')->name('queue');
