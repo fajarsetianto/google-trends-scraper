@@ -5,6 +5,7 @@ use Google\GTrends;
 use Laminas\Json\Json;
 use Laminas\Http\Client;
 use Laminas\Http\Client\Adapter\Curl;
+use Laminas\Http\Client\Adapter\Socket;
 use Laminas\Http\Client\Adapter\Proxy;
 use Zend\Stdlib\Parameters;
 
@@ -72,7 +73,7 @@ class GoogleTrend extends GTrends{
         $client = new Client();
         $cookieJar = tempnam(storage_path('tmp'),'cookie');
         $client->setOptions([
-            'adapter' => Curl::class,
+            'adapter' => Socket::class,
             'proxy_host' => 'p.webshare.io',
             'proxy_user'=> 'edswurpo-rotate',
             'proxy_pass' => 'qh30oorwzasa',
