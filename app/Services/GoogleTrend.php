@@ -73,7 +73,7 @@ class GoogleTrend extends GTrends{
             'adapter' => Curl::class,
             'proxy_host' => 'proxy-server.scraperapi.com',
             'proxy_user'=> 'scraperapi',
-            'proxy_pass' => '92ef600e86d13bf3fe4dddb3e039fb08@proxy-server.scraperapi.com',
+            'proxy_pass' => '92ef600e86d13bf3fe4dddb3e039fb08',
             'proxy_port' => '8001',
             'curloptions' => [
                 CURLOPT_COOKIEJAR => $cookieJar,

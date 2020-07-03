@@ -47,7 +47,7 @@ class AppController extends Controller{
     
 
     public function search(Request $request, DatasetImports $import){
-        
+        // dd($this->gTrends->getCategories());
         $categories = $this->flatten($this->gTrends->getCategories());    
         $input = $request->all();
         $input['keyword'] = $input['keyword'] == null ? null: explode(',', $input['keyword']); 
