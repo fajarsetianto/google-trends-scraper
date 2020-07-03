@@ -62,6 +62,7 @@ class GoogleTrend extends GTrends{
     public function _getData($uri, $method, array $params=[])
     {
         $params['premium'] = true;
+        $params['country_code'] = "AU";
         if ($method != 'GET' AND $method != 'POST') {
 
             # throw new \Exception(__METHOD__ . " $method method not allowed");
