@@ -73,7 +73,7 @@ class GoogleTrend extends GTrends{
         $client = new Client();
         $cookieJar = tempnam(storage_path('tmp'),'cookie');
         $client->setOptions([
-            'adapter' => Curl::class,
+            'adapter' => Socket::class,
             'proxy_host' => 'p.webshare.io',
             'proxy_user'=> 'edswurpo-rotate',
             'proxy_pass' => 'qh30oorwzasa',
