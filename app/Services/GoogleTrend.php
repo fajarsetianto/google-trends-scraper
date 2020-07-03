@@ -61,8 +61,8 @@ class GoogleTrend extends GTrends{
 
     public function _getData($uri, $method, array $params=[])
     {
-        $params['premium'] = true;
-        $params['country_code'] = "US";
+        // $params['premium'] = true;
+        // $params['country_code'] = "US";
         if ($method != 'GET' AND $method != 'POST') {
 
             # throw new \Exception(__METHOD__ . " $method method not allowed");
@@ -73,10 +73,10 @@ class GoogleTrend extends GTrends{
         $cookieJar = tempnam(storage_path('tmp'),'cookie');
         $client->setOptions([
             'adapter' => Curl::class,
-            'proxy_host' => 'proxy-server.scraperapi.com',
-            'proxy_user'=> 'scraperapi',
-            'proxy_pass' => '92ef600e86d13bf3fe4dddb3e039fb08',
-            'proxy_port' => '8001',
+            'proxy_host' => 'p.webshare.io',
+            'proxy_user'=> 'edswurpo-rotate',
+            'proxy_pass' => 'qh30oorwzasa',
+            'proxy_port' => '80',
             'curloptions' => [
                 CURLOPT_COOKIEJAR => $cookieJar,
                 CURLOPT_SSL_VERIFYPEER => false
