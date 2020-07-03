@@ -77,11 +77,11 @@ class GoogleTrend extends GTrends{
             'proxy_host' => 'p.webshare.io',
             'proxy_user'=> 'edswurpo-rotate',
             'proxy_pass' => 'qh30oorwzasa',
-            'proxy_port' => '1080',
+            'proxy_port' => '80',
             'curloptions' => [
                 CURLOPT_COOKIEJAR => $cookieJar,
                 CURLOPT_SSL_VERIFYPEER => false,
-                CURLOPT_PROXYTYPE => CURLPROXY_SOCKS5
+                // CURLOPT_PROXYTYPE => CURLPROXY_SOCKS5
             ],
             'maxredirects' => 10,
             'timeout' => 60]);
