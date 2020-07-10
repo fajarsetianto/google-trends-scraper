@@ -11,7 +11,7 @@ class Queue extends Model
     protected $guarded = [];
 
     protected $casts = [
-        'dataset' => 'array',
+        'data' => 'array',
         'periods' => 'array',
         'keywords' => 'array',
         'corelation' => 'array',

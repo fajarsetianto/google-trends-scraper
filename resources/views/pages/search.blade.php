@@ -22,7 +22,7 @@
        <header>
             <nav class="navbar fixed-top navbar-expand-lg navbar-dark bg-primary scrolling-navbar">
             <a class="navbar-brand" href="{{url('/')}}"><strong>GTrend</strong></a>
-                <form action="{{url('/cari')}}" class="inline-form rounded py-1 w-100" method="POST" enctype="multipart/form-data">
+                <form action="{{route('search',[$queue->id])}}" class="inline-form rounded py-1 w-100" method="POST" enctype="multipart/form-data">
                   @csrf  
                   <div class="row justify-content-center">
                        <div class="col-md-6 pr-0" style="margin-right:-1px">

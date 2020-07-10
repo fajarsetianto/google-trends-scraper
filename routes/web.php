@@ -20,7 +20,7 @@ Route::get('/1',function(){
 });
 
 Route::post('/cari', 'GoogleTrendController@find');
-Route::post('/search', 'AppController@search')->name('search');
+Route::post('/search/{queue?}', 'AppController@search')->name('search');
 Route::get('/progress/{queue}', 'AppController@progress')->name('progress');
 Route::get('/results/{queue}', 'AppController@results')->name('results');
 Route::get('/search/suggestion/', 'AppController@getSuggestion')->name('suggestion');

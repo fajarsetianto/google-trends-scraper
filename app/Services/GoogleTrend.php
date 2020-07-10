@@ -81,8 +81,8 @@ class GoogleTrend extends GTrends{
             'curloptions' => [
                 CURLOPT_COOKIEJAR => $cookieJar,
                 CURLOPT_SSL_VERIFYPEER => false,
-                CURLOPT_PROXYTYPE => 7
-                // CURLOPT_PROXYTYPE => CURLPROXY_SOCKS5
+                // CURLOPT_PROXYTYPE => 7
+                CURLOPT_PROXYTYPE => CURLPROXY_SOCKS5
             ],
             'maxredirects' => 10,
             'timeout' => 60]);

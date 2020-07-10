@@ -28,62 +28,54 @@ class AppController extends Controller{
         $this->gTrends = new GoogleTrend([
             'hl'  => 'id',
             'tz'  => -60, # last hour
-            'geo' => 'ID',
+            'geo' => 'ID', 
         ]);
     }
     public function index(){
-        // dd($this->gTrends->_getProxy());
-        // $data = collect(json_decode($this->gTrends->_getProxy()));
-        // return $data->toJson();
-        
-        // dd('a');
-        // dd(json_decode($this->gTrends->proxy));
         $categories = collect($this->gTrends->getCategories()['children'])->prepend(['name'=> 'Semua Kategori','id'=>0]);
-        // dd($categories);
         return view('pages.new', compact('categories'));
-        
     }
 
     
 
-    public function search(Request $request, DatasetImports $import){
-        // dd($this->gTrends->getCategories());
-        $categories = $this->flatten($this->gTrends->getCategories());    
+    public function search(Queue $queue = null, Request $request, DatasetImports $import){
+        $categories = $this->flatten($this->gTrends->getCategories());
         $input = $request->all();
         $input['keyword'] = $input['keyword'] == null ? null: explode(',', $input['keyword']); 
         $request->replace($input);
-
         $request->validate([
             'kategori' => 'required|in:'.implode(',',$categories),
-            'keyword' => ['required','min:1'],
-            'dataset' => ['required']
+            'keyword' => ['required','array','min:1'],
+            'dataset' => ['required_without:use_old'],
+            'use_old' => ['required_without:dataset']
         ]);
-
-        Excel::import($import, $request->file('dataset'));
-
-        $dataSet = $import->data->sortBy(function($value){
-            return $value['start_date'];
-        });
-
-        $first_date = $dataSet->first()['start_date'];
-        $last_date = $dataSet->last()['end_date'];
-
-        $periods = collect(CarbonPeriod::create($first_date,'8 months', $last_date));        
         
-        $formatedPeriods = $periods->map(function($value){
-            return [
-                'start_date' => $value->copy(),
-                'end_date' => $value->copy()->addMonths(8)->subDays(1)
-            ];
-        });
-
-        $queue = Queue::create([
-            'dataset' => $dataSet->values(),
-            'keywords' => $input['keyword'],
-            'category' => $input['kategori'],
-        ]);
+        if($request->input('use_old') != null){
+            $queue->update([
+                'keywords' => $input['keyword'],
+                'category' => $input['kategori'],
+            ]);
+        }else{
+            Excel::import($import, $request->file('dataset'));
+            $dataSet = $import->data->sortBy(function($value){
+                return $value['start_date'];
+            })->values();
+            if($queue){
+                $queue->update([
+                    'data' => $dataSet,
+                    'keywords' => $input['keyword'],
+                    'category' => $input['kategori'],
+                ]);
+            }else{
+                $queue = Queue::create([
+                    'data' => $dataSet,
+                    'keywords' => $input['keyword'],
+                    'category' => $input['kategori'],
+                ]);
+            }
+            
+        }
         FetchGoogleTrend::dispatch($queue);
-
         return redirect()->route('progress', [$queue->id]);
     }
 
@@ -157,17 +149,6 @@ class AppController extends Controller{
             }
         }
         return $newArr;
-    }
-
-    public function debug(){
-        $g = new GoogleTrend([
-            'hl'  => 'id',
-            'tz'  => -60, # last hour
-            'geo' => 'ID',
-        ]);
-        // dd('a');
-        $data = $g->finterestBySubregion(['corona'], 'WEEK' ,0 , '2019-06-08 2020-06-08');
-        dd($data);
     }
  
     public function jobs(Queue $queue){

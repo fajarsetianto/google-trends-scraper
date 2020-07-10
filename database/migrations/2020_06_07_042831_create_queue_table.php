@@ -16,7 +16,7 @@ class CreateQueueTable extends Migration
         Schema::create('queue', function (Blueprint $table) {
             $table->bigIncrements('id');
             $table->tinyInteger('status')->default(1);
-            $table->longText('dataset');
+            $table->longText('data');
             $table->longText('corelation')->nullable();
             $table->integer('category');
             $table->longText('keywords');

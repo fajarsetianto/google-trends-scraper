@@ -7,6 +7,7 @@
 
 @section('js')
     <script src="{{asset('vendor/limitless/global_assets/js/plugins/visualization/echarts/echarts.min.js')}}"></script>
+    <script src="{{asset('vendor/limitless/global_assets/js/plugins/forms/styling/uniform.min.js')}}"></script>
     <script src="https://momentjs.com/downloads/moment-with-locales.min.js"></script>
     <script type="text/javascript" src="{{asset('vendor/bloodhound/bloodhound.js')}}"></script>  
     <script type="text/javascript" src="{{asset('vendor/bootstrap-tags-input/tagsinput.js')}}"></script>
@@ -17,9 +18,9 @@
                 $('.category-input').customSelect({
                     dataOriginal : data
                 });
-            $('.form-input-styled').uniform({
-                fileButtonClass: 'action btn bg-info-400'
-            });
+                $('.form-input-styled').uniform({
+                    fileButtonClass: 'action btn bg-info-400'
+                });
                 var suggestions = new Bloodhound({
                     datumTokenizer: Bloodhound.tokenizers.obj.whitespace('title'),
                     queryTokenizer: Bloodhound.tokenizers.whitespace,
@@ -48,15 +49,17 @@
                         e.preventDefault();
                     }
                 });
+                $('.form-check-input-styled').uniform();
             // })
     </script>
     <script>
+        
         moment.locale('id');
-        var dataset = {!!json_encode($queue->dataset)!!}
+        var data = {!!json_encode($queue->data)!!}
         var keywords = {!!json_encode($queue->keywords)!!}
         var legends = {!!json_encode($queue->keywords)!!};
         legends.unshift('dataset');
-        var labels = dataset.map(function(data){
+        var labels = data.map(function(data){
             if(data.start_date == data.end_date){
                data = moment(data.start_date).format('D MMM YYYY');
             }else{
@@ -78,14 +81,14 @@
             lineStyle: {
                 width: 3
             },
-            data : dataset.map(function(val, index){
+            data : data.map(function(val, index){
                 return val['value'];
             })
         })
 
         keywords.forEach(function(keyword){
-            var maped = dataset.map(function(val, index){
-               return val['keywords'][keyword];
+            var maped = data.map(function(val, index){
+               return val['trends'][keyword];
             })
             series.push({
                 name: keyword,
@@ -198,7 +201,8 @@
                 {
                     type: 'inside',
                     start: 0,
-                    end: 100
+                    end: 100,
+                    minValueSpan: 1,
                 },
                 {
                     show: true,
@@ -213,6 +217,7 @@
                         color: '#585f63'
                     }
                 }
+                ,
             ],
 
             // Add series
@@ -244,15 +249,15 @@
 
             function calculateCorellation(start, end){
                 if(start != null || end != null){
-                    currentDataset = dataset.slice(start,end+1);
+                    currentData = data.slice(start,end+1);
                 }else{
-                    currentDataset = dataset;
+                    currentData = data;
                 }
-                n = currentDataset.length;
-                sigmaX = currentDataset.reduce(function(a,b){
+                n = currentData.length;
+                sigmaX = currentData.reduce(function(a,b){
                     return { value:a.value + b.value}
                 }).value;
-                sigmaX2 = currentDataset.map(function(data){
+                sigmaX2 = currentData.map(function(data){
                     return Math.pow(data.value,2);
                 }).reduce(function(a,b){
                     return a + b;
@@ -260,20 +265,20 @@
 
                 corellation = [];
                 keywords.forEach(function(keyword){
-                    keywordDataset = currentDataset.map(function(data){
-                        return data.keywords[keyword];
+                    keywordData = currentData.map(function(data){
+                        return data.trends[keyword];
                     })
-                    sigmaY = keywordDataset.reduce(function(a,b){
+                    sigmaY = keywordData.reduce(function(a,b){
                         return a + b;
                     })
-                    sigmaY2 = keywordDataset.map(function(data){
+                    sigmaY2 = keywordData.map(function(data){
                         return Math.pow(data,2);
                     }).reduce(function(a,b){
                         return a+b;
                     })
                     sigmaXY = 0;
-                    for (let index = 0; index < currentDataset.length; index++) {
-                        sigmaXY += currentDataset[index].value * currentDataset[index].keywords[keyword];
+                    for (let index = 0; index < currentData.length; index++) {
+                        sigmaXY += currentData[index].value * currentData[index].trends[keyword];
                     }
 
                     ul = (sigmaXY - ((sigmaX * sigmaY) / n));
@@ -298,7 +303,7 @@
                         ])
                     )
                 });
-                corellationPeriod = moment(currentDataset[0].start_date).format('D MMM YYYY')+' - '+moment(currentDataset[currentDataset.length-1].end_date).format('D MMM YYYY');
+                corellationPeriod = moment(currentData[0].start_date).format('D MMM YYYY')+' - '+moment(currentData[currentData.length-1].end_date).format('D MMM YYYY');
                 $('#corellation-period').html(
                     'period : '+corellationPeriod
                 )
@@ -318,7 +323,40 @@
             }
     </script>
     <script>
-        
+        function readURL(input) {
+            if (input.files && input.files[0]) {
+                // var reader = new FileReader();
+                // reader.onload = function(e) {
+                //     $('#blah').attr('src', e.target.result);
+                // }
+                // reader.readAsDataURL(input.files[0]); // convert to base64 string
+                $(".form-check-input-styled").prop('checked',false);
+            }else{
+                $(".form-check-input-styled").prop('checked',true);
+            }
+            $.uniform.update();
+        }
+
+        $("body").on('change','input[name="dataset"]',function() {
+            readURL(this);
+        });
+
+        // $(".form-check-input-styled").change(function(){
+        //     if(this.checked){
+        //         $('body .uniform-uploader').replaceWith(
+        //             $('<input>').attr({
+        //                 'type' : 'file',
+        //                 'accept' : '.xls,.xlsx',
+        //                 'name' : 'dataset',
+        //                 'class' : 'form-input-styled'
+        //             })
+        //             .prop('data-fouc',true)
+        //         )
+        //         $('body .form-input-styled').uniform({
+        //             fileButtonClass: 'action btn bg-info-400'
+        //         })
+        //     }
+        // })
     </script>
 @endsection
 
@@ -327,7 +365,7 @@
     <div class="row">
         <div class="col-md-6">
             <div class="p-3">
-                <form action="{{route('search')}}" enctype="multipart/form-data" method="POST">
+                <form action="{{route('search',[$queue->id])}}" enctype="multipart/form-data" method="POST">
                     @csrf
                     <div class="form-group">
                         <label>Keywords</label>
@@ -342,8 +380,14 @@
                     </div>
                     <div class="form-group">
                         <label>Dataset</label>
-                        <input type="file" name="dataset" class="form-input-styled" required data-fouc accept=".xls,.xlsx">
+                        <input type="file" name="dataset" class="form-input-styled" data-fouc accept=".xls,.xlsx">
                         <span class="form-text text-muted">Accepted formats: xls, xlsx, csv. Max file size 2Mb or <a href="">Download the example dataset</a></span>
+                        <div class="form-check">
+                            <label class="form-check-label">
+                                <input type="checkbox" name="use_old" class="form-check-input-styled" checked data-fouc>
+                                Or use latest dataset
+                            </label>
+                        </div>
                     </div>
                     <button type="submit" class="btn btn-info">Submit</button>
                 </form>

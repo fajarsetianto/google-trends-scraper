@@ -46,7 +46,7 @@ class FetchGoogleTrend implements ShouldQueue
             'tz'  => -420,
             'geo' => 'ID',
         ]);
-        $dataset = collect($this->currentQueue->dataset)->map(function($data){
+        $dataset = collect($this->currentQueue->data)->map(function($data){
             $data['start_date'] = Carbon::parse($data['start_date']);
             $data['end_date'] = Carbon::parse($data['end_date']);
             return $data;
@@ -61,7 +61,7 @@ class FetchGoogleTrend implements ShouldQueue
                 $debugtime= Carbon::now();
                 // $periodDaily = $trend->explore([$keyword],$this->currentQueue->category, $period['start_date']->format('Y-m-d').' '.$period['end_date']->format('Y-m-d'),'',['TIMESERIES']); 
                 $periodDaily = $trend->interestOverTime($keyword,$this->currentQueue->category, $period['start_date']->format('Y-m-d').' '.$period['end_date']->format('Y-m-d')); 
-                logger($debugtime->diffInRealSeconds(Carbon::now()));
+                logger('fecting time for '.$keyword.' at period '.$period['start_date']->format('Y-m-d').' - '.$period['end_date'].' '.$debugtime->diffInRealSeconds(Carbon::now()).' seconds');
                 if(is_array($periodDaily)){
                     $periodDaily = collect($periodDaily);
                     if($periodDaily->isNotEmpty()){                        
@@ -115,14 +115,14 @@ class FetchGoogleTrend implements ShouldQueue
                     }
                     return 0;
                 });
-                $data['keywords'][$keyword] = $total;
+                $data['trends'][$keyword] = $total;
                 return $data;
             });
             $max = $dataset->max(function($data) use($keyword){
-                return $data['keywords'][$keyword];
+                return $data['trends'][$keyword];
             });
             $dataset = $dataset->map(function($data) use ($max,$keyword) {
-                $data['keywords'][$keyword] = (100/$max) * $data['keywords'][$keyword];
+                $data['trends'][$keyword] = (100/$max) * $data['trends'][$keyword];
                 return $data;
             });
         }
@@ -158,7 +158,7 @@ class FetchGoogleTrend implements ShouldQueue
         // }
 
         $this->currentQueue->update([
-            'dataset' => $dataset,
+            'data' => $dataset,
             // 'corelation' => $corelation,
             'status' => 4
         ]);
