@@ -63,6 +63,10 @@ class AppController extends Controller{
             if(collect($input['keyword'])->diff(collect($queue->fetched_keywords))->isEmpty()){
                 return redirect()->route('results', [$queue->id]);
             }
+            $queue->update([
+                'status' => 1
+            ]);
+
         }else{
             Excel::import($import, $request->file('dataset'));
             if($import->data == null){
@@ -82,6 +86,7 @@ class AppController extends Controller{
                     'keywords' => $input['keyword'],
                     'fetched_keywords' => [],
                     'category' => $input['kategori'],
+                    'status' => 1
                 ]);
             }else{
                 $queue = Queue::create([
