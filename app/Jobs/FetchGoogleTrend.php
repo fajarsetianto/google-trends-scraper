@@ -51,7 +51,11 @@ class FetchGoogleTrend implements ShouldQueue
             $data['end_date'] = Carbon::parse($data['end_date']);
             return $data;
         });
-        $keywords = $this->currentQueue->keywords;
+        $fetchedKeywords = collect($this->currentQueue->fetched_keywords);
+        $keywords = collect($this->currentQueue->keywords)->diff($fetchedKeywords);
+        
+        $fetchedKeywords = $fetchedKeywords->merge($keywords);
+        
         $periods = $this->getPeriod($dataset);
 
         $this->currentQueue->update(['status' => 2]);
@@ -59,9 +63,8 @@ class FetchGoogleTrend implements ShouldQueue
             $keywordDaily = collect();
             foreach($periods as $period){
                 $debugtime= Carbon::now();
-                // $periodDaily = $trend->explore([$keyword],$this->currentQueue->category, $period['start_date']->format('Y-m-d').' '.$period['end_date']->format('Y-m-d'),'',['TIMESERIES']); 
                 $periodDaily = $trend->interestOverTime($keyword,$this->currentQueue->category, $period['start_date']->format('Y-m-d').' '.$period['end_date']->format('Y-m-d')); 
-                logger('fecting time for '.$keyword.' at period '.$period['start_date']->format('Y-m-d').' - '.$period['end_date'].' '.$debugtime->diffInRealSeconds(Carbon::now()).' seconds');
+                logger($keyword.' at '.$period['start_date']->format('Y-m-d').' - '.$period['end_date']->format('Y-m-d').' '.$debugtime->diffInRealSeconds(Carbon::now()).' s');
                 if(is_array($periodDaily)){
                     $periodDaily = collect($periodDaily);
                     if($periodDaily->isNotEmpty()){                        
@@ -128,39 +131,11 @@ class FetchGoogleTrend implements ShouldQueue
         }
         $this->currentQueue->update(['status' => 3]);
 
-
-        $max = $dataset->max('value');
-        $dataset = $dataset->map(function($data) use ($max) {
-            $data['value'] = (100/$max) * $data['value'];
-            return $data;
-        });
-
-        // $corelation = collect();        
-        // $realCases = $dataset->pluck('value');
-        // $n = $realCases->count();
-        // $sigmaX = $realCases->sum();
-        // $sigmaX2 = $realCases->sum(function($value){
-        //     return pow($value,2);
-        // });
-        // foreach(collect($this->currentQueue->keywords) as $keyword){
-        //     $currentTrendData = $dataset->pluck('keywords.'.$keyword);                    
-        //     $sigmaY = $currentTrendData->sum();
-        //     $sigmaY2 = $currentTrendData->sum(function($value){
-        //         return pow($value,2);
-        //     });
-        //     $sigmaXY = $currentTrendData->zip($realCases)->sum(function($item){
-        //         return $item[0] * $item[1];
-        //     });
-        //     $top = ($sigmaXY - (($sigmaX * $sigmaY) / $n));
-        //     $bottom = sqrt(($sigmaX2 - (pow($sigmaX,2) / $n)) * ($sigmaY2 - (pow($sigmaY,2) / $n)));                            
-        //     $corelation[$keyword] = $top / ($bottom != 0 ? $bottom : 1);
-        //     // $corelation[$keyword] = ($sigmaXY - (($sigmaX * $sigmaY) / $n)) / (sqrt(($sigmaX2 - ((pow($sigmaX,2) / $n) ?? 1)) * ($sigmaY2 - ((pow($sigmaY,2) / $n) ?? 1))) ?? 1);
-        // }
-
         $this->currentQueue->update([
             'data' => $dataset,
-            // 'corelation' => $corelation,
-            'status' => 4
+            'fetched_keywords' => $fetchedKeywords,
+            'status' => 4,
+
         ]);
     }
 

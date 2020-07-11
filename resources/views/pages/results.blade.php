@@ -376,7 +376,7 @@
                     
                     <div class="form-group">
                         <label>Category</label>
-                        <input type="number" value="{{old('kategori') ? old('kategori') : 0}}" name="kategori" class="form-control category-input" required>
+                        <input type="number" value="{{old('kategori') ? old('kategori') : $queue->category}}" name="kategori" class="form-control category-input" required>
                     </div>
                     <div class="form-group">
                         <label>Dataset</label>

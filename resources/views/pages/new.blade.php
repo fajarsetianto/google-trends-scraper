@@ -72,18 +72,35 @@
                                         <div class="form-group">
                                             <label>Keywords</label>
                                             <div class="d-block">
-                                                <input type="text" placeholder="Type Keywords" id="input-tags" name="keyword" value="{{old('keyword') ? implode(',',old('keyword')) : ''}}" required/>
+                                                <input type="text" placeholder="Type Keywords" id="input-tags" name="keyword" value="{{old('keyword') ? implode(',',old('keyword')) : ''}}" required/>  
                                             </div>
+                                            @error('keyword')
+                                                <span class="text-danger" role="alert">
+                                                    <small>{{ $message }}</small>
+                                                </span>
+                                            @enderror
                                         </div>
                                         
                                         <div class="form-group">
                                             <label>Category</label>
                                             <input type="number" value="{{old('kategori') ? old('kategori') : 0}}" name="kategori" class="form-control category-input" required>
+                                            @error('kategori')
+                                                <span class="text-danger" role="alert">
+                                                    <small>{{ $message }}</small>
+                                                </span>
+                                            @enderror
                                         </div>
                                         <div class="form-group">
                                             <label>Dataset</label>
                                             <input type="file" name="dataset" class="form-input-styled" required data-fouc accept=".xls,.xlsx">
                                             <span class="form-text text-muted">Accepted formats: xls, xlsx, csv. Max file size 2Mb or <a href="">Download the example dataset</a></span>
+                                            @error('dataset*')
+                                                <div class="">
+                                                    <span class="text-danger" role="alert">
+                                                        <small>{{ $message }}</small>
+                                                    </span>
+                                                </div>
+                                            @enderror
                                         </div>
                                         <button type="submit" class="btn btn-info">Submit</button>
                                     </form>

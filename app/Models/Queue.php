@@ -14,6 +14,7 @@ class Queue extends Model
         'data' => 'array',
         'periods' => 'array',
         'keywords' => 'array',
-        'corelation' => 'array',
+        'fetched_keywords' => 'array',
+
     ];
 }

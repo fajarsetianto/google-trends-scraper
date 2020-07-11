@@ -22,6 +22,7 @@ class DatasetImports implements ToCollection,WithChunkReading, WithCustomValueBi
     */
     public function collection(Collection $rows)
     {
+        // dd(['dataset' => $rows->toArray()]);
         Validator::make(['dataset' => $rows->toArray()], [
             'dataset' => ['min:1'],
             'dataset.*.start_date' => ['required','date'],
@@ -43,25 +44,23 @@ class DatasetImports implements ToCollection,WithChunkReading, WithCustomValueBi
                 for($y = 0; $y < $rows->count()-1; $y++){
                     $curentStartDate = $rows[$y]['start_date'];
                     $curentEndDate = $rows[$y]['end_date'];
-                        for($i = $y + 1; $i < $rows->count(); $i++){
-                            $startDate = $rows[$i]['start_date'];
-                            $endDate =$rows[$i]['end_date'];
+                    for($i = $y + 1; $i < $rows->count(); $i++){
+                        $startDate = $rows[$i]['start_date'];
+                        $endDate =$rows[$i]['end_date'];
         
-                            if($curentStartDate->between($startDate, $endDate)){
-                                $beetwenErrors .= 'data.'.$y.'.start_date is between data.'.$i.'<br>';
-                            }
-                            if($startDate->between($curentStartDate, $curentEndDate)){
-                                $beetwenErrors .= 'data.'.$i.'.start_date is between data.'.$y.'<br>';
-                            }
-                            if($curentEndDate->between($startDate, $endDate)){
-                                $beetwenErrors .= 'data.'.$y.'.end_date is between data.'.$i.'<br>';
-                            }
-                            if($endDate->between($curentStartDate, $curentEndDate)){
-                                $beetwenErrors .= 'data.'.$i.'.end_date is between data.'.$y.'<br>';
-                            }
+                        if($curentStartDate->between($startDate, $endDate)){
+                            $beetwenErrors .= 'data.'.$y.'.start_date is between data.'.$i.'<br>';
                         }
-                    
-                    
+                        if($startDate->between($curentStartDate, $curentEndDate)){
+                            $beetwenErrors .= 'data.'.$i.'.start_date is between data.'.$y.'<br>';
+                        }
+                        if($curentEndDate->between($startDate, $endDate)){
+                            $beetwenErrors .= 'data.'.$y.'.end_date is between data.'.$i.'<br>';
+                        }
+                        if($endDate->between($curentStartDate, $curentEndDate)){
+                            $beetwenErrors .= 'data.'.$i.'.end_date is between data.'.$y.'<br>';
+                        }
+                    }
                 }
                 
                 if($beetwenErrors != ''){

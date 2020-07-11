@@ -20,6 +20,7 @@ class CreateQueueTable extends Migration
             $table->longText('corelation')->nullable();
             $table->integer('category');
             $table->longText('keywords');
+            $table->longText('fetched_keywords')->nullable();
             $table->timestamps();
         });
 

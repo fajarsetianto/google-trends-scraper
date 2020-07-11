@@ -58,7 +58,7 @@ class DatasetImport implements WithColumnFormatting,ToCollection{
     public function collection(Collection $rows)
     {
         
-        dd($rows);
+        dd(['dataset' => $rows->toArray()]);
         Validator::make(['data' => $rows->toArray()], [
             'data.*.start_date' => ['bail','required','numeric',new Exceldate],
             'data.*.end_date' => ['bail','required','numeric',new Exceldate],
@@ -76,7 +76,7 @@ class DatasetImport implements WithColumnFormatting,ToCollection{
             ];
         });
 
-        dd($rows);
+        // dd($rows);
 
         Validator::make(['data' => $rows->toArray()], [
             'data' => ['bail', 'min:1', function($attribute, $value, $fail) use ($rows){ 

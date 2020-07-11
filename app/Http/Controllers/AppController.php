@@ -39,41 +39,58 @@ class AppController extends Controller{
     
 
     public function search(Queue $queue = null, Request $request, DatasetImports $import){
+        // dd($request->all());
+
         $categories = $this->flatten($this->gTrends->getCategories());
         $input = $request->all();
-        $input['keyword'] = $input['keyword'] == null ? null: explode(',', $input['keyword']); 
+        $input['keyword'] = $input['keyword'] == null ? [] : explode(',', $input['keyword']); 
         $request->replace($input);
         $request->validate([
             'kategori' => 'required|in:'.implode(',',$categories),
-            'keyword' => ['required','array','min:1'],
+            'keyword' => ['required','array','min:1','max:10'],
             'dataset' => ['required_without:use_old'],
             'use_old' => ['required_without:dataset']
         ]);
+
+        $currentCategory = $queue != null ? $queue->category : null;
         
-        if($request->input('use_old') != null){
+        if($queue!= null && $request->input('use_old') != null){
             $queue->update([
                 'keywords' => $input['keyword'],
+                'fetched_keywords' => $currentCategory != $input['kategori'] ? [] : $queue->fetched_keywords,
                 'category' => $input['kategori'],
             ]);
+            if(collect($input['keyword'])->diff(collect($queue->fetched_keywords))->isEmpty()){
+                return redirect()->route('results', [$queue->id]);
+            }
         }else{
             Excel::import($import, $request->file('dataset'));
+            if($import->data == null){
+                return back()->withErrors(['dataset' => 'dataset should not be empty'])->withInput($input);
+            }
             $dataSet = $import->data->sortBy(function($value){
                 return $value['start_date'];
             })->values();
+            $max = $dataSet->max('value');
+            $dataSet = $dataSet->map(function($data) use ($max) {
+                $data['value'] = (100/$max) * $data['value'];
+                return $data;
+            });
             if($queue){
                 $queue->update([
                     'data' => $dataSet,
                     'keywords' => $input['keyword'],
+                    'fetched_keywords' => [],
                     'category' => $input['kategori'],
                 ]);
             }else{
                 $queue = Queue::create([
                     'data' => $dataSet,
                     'keywords' => $input['keyword'],
+                    'fetched_keywords' => [],
                     'category' => $input['kategori'],
                 ]);
             }
-            
         }
         FetchGoogleTrend::dispatch($queue);
         return redirect()->route('progress', [$queue->id]);
