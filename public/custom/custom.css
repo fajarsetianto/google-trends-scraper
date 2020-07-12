@@ -91,5 +91,15 @@
     padding: 3px 8px;
 }
 
+#related-queries .badge{
+    font-size: inherit;
+    cursor: pointer;
+    margin-bottom: 3px;
+}
+
+#related-queries .badge:hover{
+    background-color: #2196F3;
+}
+
 
 

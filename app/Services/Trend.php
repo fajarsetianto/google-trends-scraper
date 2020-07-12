@@ -49,7 +49,6 @@ class Trend {
                 'retry' => 10,
                 'timeout' => 60
             ])->raw_body; 
-            dd($results);
             if($this->client->getResponse()->getStatusCode() != 200){
                 dd($this->client->getResponse()->getContent());
                 if(--$toManyRequest <= 0){

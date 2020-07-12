@@ -21,6 +21,7 @@ class CreateQueueTable extends Migration
             $table->integer('category');
             $table->longText('keywords');
             $table->longText('fetched_keywords')->nullable();
+            $table->string('error_message')->nullable();
             $table->timestamps();
         });
 

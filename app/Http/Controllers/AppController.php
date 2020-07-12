@@ -59,11 +59,11 @@ class AppController extends Controller{
                 'keywords' => $input['keyword'],
                 'category' => $input['kategori'],
             ]);
-            $fetchedKeywords = collect($queue->fetched_keywords);
+            $fetchedKeywords = $queue->fetched_keywords;
             
-            if(array_key_exists($input['kategori'],$fetchedKeywords->toArray())){
+            if(array_key_exists($input['kategori'],$fetchedKeywords)){
                 // dd('a');
-                if(collect($input['keyword'])->diff($fetchedKeywords[$input['kategori']])->isEmpty()){
+                if(collect($input['keyword'])->diff(collect($fetchedKeywords[$input['kategori']])->pluck('key'))->isEmpty()){
                     return redirect()->route('results', [$queue->id]);
                 }
             }
@@ -74,7 +74,7 @@ class AppController extends Controller{
         }else{
             Excel::import($import, $request->file('dataset'));
             if($import->data == null){
-                return back()->withErrors(['dataset' => 'dataset should not be empty'])->withInput($input);
+                return back()->withErrors(['dataset' => 'Dataset should not be empty'])->withInput($input);
             }
             $dataSet = $import->data->sortBy(function($value){
                 return $value['start_date'];
@@ -152,7 +152,17 @@ class AppController extends Controller{
                 // }
                 // dd($queue->corelation);
                 $categories = collect($this->gTrends->getCategories()['children'])->prepend(['name'=> 'Semua Kategori','id'=>0]);
-                return view('pages.results', compact('queue','categories'));
+                
+                $fetchedKeywords = collect($queue->fetched_keywords[$queue->category])->where('avaliable',true)->values();
+                // $currentKeywords = $queue->keywords;
+                $keywords = collect($queue->keywords)->filter(function($data) use ($fetchedKeywords){
+                    return in_array($data,$fetchedKeywords->pluck('key')->toArray());
+                })->values();
+                $currentKeywords = $queue->keywords;
+                $currentFetchedKeywords = $fetchedKeywords->filter(function($data) use ($currentKeywords){
+                    return in_array($data['key'],$currentKeywords);
+                })->values();
+                return view('pages.results', compact('queue','categories','keywords','currentFetchedKeywords'));
                 break;
             default:
                 return redirect()->route('progress',[$queue->id]);
@@ -186,7 +196,7 @@ class AppController extends Controller{
                 ],200);
                 break;
             default:
-                return response()->json($queue->only(['status']),200);
+                return response()->json($queue->only(['status','error_message']),200);
                 break;
         }
     }

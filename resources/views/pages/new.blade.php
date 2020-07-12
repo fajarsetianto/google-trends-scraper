@@ -93,7 +93,7 @@
                                         <div class="form-group">
                                             <label>Dataset</label>
                                             <input type="file" name="dataset" class="form-input-styled" required data-fouc accept=".xls,.xlsx">
-                                            <span class="form-text text-muted">Accepted formats: xls, xlsx, csv. Max file size 2Mb or <a href="">Download the example dataset</a></span>
+                                            <span class="form-text text-muted">Accepted formats: xls, xlsx, csv. Max file size 2Mb or <a download href="{{asset('files/covid-19.xlsx')}}">Download the example dataset</a></span>
                                             @error('dataset*')
                                                 <div class="">
                                                     <span class="text-danger" role="alert">

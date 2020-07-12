@@ -163,5 +163,76 @@ class GoogleTrend extends GTrends{
         }
         return false;
     }
+
+    public function getRelatedSearchQueries($keyWordList=null, $category=0, $time='today 12-m', $property='', $sleep=0.5)
+    {
+        if (null !== $keyWordList && !is_array($keyWordList)) {
+            $keyWordList = [$keyWordList];
+        }
+
+        if (null === $keyWordList) {
+            $comparisonItem[] = ['geo' => $this->options['geo'], 'time' => $time];
+        } else {
+            if (count($keyWordList) > 5) {
+
+                throw new \Exception('Invalid number of items provided in keyWordList');
+            }
+
+            $comparisonItem = [];
+            foreach ($keyWordList as $kWord) {
+
+                $comparisonItem[] = ['keyword' => $kWord, 'geo' => $this->options['geo'], 'time' => $time];
+            }
+        }
+
+        $payload = [
+            'hl' => $this->options['hl'],
+            'tz' => $this->options['tz'],
+            'req' => Json::encode(['comparisonItem' => $comparisonItem, 'category' => $category, 'property' => $property]),
+        ];
+
+        $data = $this->_getData(self::GENERAL_ENDPOINT, 'GET', $payload);
+        if ($data) {
+
+            $widgetsArray = Json::decode(trim(substr($data, 5)), Json::TYPE_ARRAY)['widgets'];
+
+            $results = [];
+            foreach ($widgetsArray as $widget) {
+
+                if (stripos($widget['id'], 'RELATED_QUERIES') !== false) {
+
+                    $kWord = $widget['request']['restriction']['complexKeywordsRestriction']['keyword'][0]['value'] ?? null;
+                    $relatedPayload['hl'] = $this->options['hl'];
+                    $relatedPayload['tz'] = $this->options['tz'];
+                    $relatedPayload['req'] = Json::encode($widget['request']);
+                    $relatedPayload['token'] = $widget['token'];
+                    $data = $this->_getData(self::RELATED_QUERIES_ENDPOINT, 'GET', $relatedPayload);
+
+                    if ($data) {
+
+                        $queriesArray = Json::decode(trim(substr($data, 5)), Json::TYPE_ARRAY);
+
+                        if (null === $kWord) {
+                            $results = $queriesArray;
+                        } else {
+                            $results[$kWord] = $queriesArray;
+                        }
+
+                        if ($keyWordList and count($keyWordList)>1) {
+
+                            sleep($sleep);
+                        }
+                    } else {
+
+                        return false;
+                    }
+                }
+            }
+
+            return $results;
+        }
+
+        return false;
+    }
     
 }

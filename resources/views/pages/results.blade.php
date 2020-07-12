@@ -13,52 +13,54 @@
     <script type="text/javascript" src="{{asset('vendor/bootstrap-tags-input/tagsinput.js')}}"></script>
     <script type="text/javascript" src="{{asset('custom/custom.js')}}"></script>
     <script>
-        //    $(document).ready(function(){
-                var data = {!!json_encode($categories)!!}
-                $('.category-input').customSelect({
-                    dataOriginal : data
-                });
-                $('.form-input-styled').uniform({
-                    fileButtonClass: 'action btn bg-info-400'
-                });
-                var suggestions = new Bloodhound({
-                    datumTokenizer: Bloodhound.tokenizers.obj.whitespace('title'),
-                    queryTokenizer: Bloodhound.tokenizers.whitespace,
-                    remote: {
-                        url: '{{route("suggestion")}}?keyword=' + '%QUERY',
-                        wildcard: '%QUERY',
-                        filter: function(data){
-                            return data.default.topics.map(function(value){
-                                return value.title
-                            })
-                        }
-                    },
-                    
-                });
-                suggestions.initialize();
-
-                var elt = $('#input-tags').tagsinput({
-                    typeaheadjs: {
-                        
-                        source: suggestions.ttAdapter()
+        (function(){
+            var data = {!!json_encode($categories)!!}
+            $('.category-input').customSelect({
+                dataOriginal : data
+            });
+            $('.form-input-styled').uniform({
+                fileButtonClass: 'action btn bg-info-400'
+            });
+            var suggestions = new Bloodhound({
+                datumTokenizer: Bloodhound.tokenizers.obj.whitespace('title'),
+                queryTokenizer: Bloodhound.tokenizers.whitespace,
+                remote: {
+                    url: '{{route("suggestion")}}?keyword=' + '%QUERY',
+                    wildcard: '%QUERY',
+                    filter: function(data){
+                        return data.default.topics.map(function(value){
+                            return value.title
+                        })
                     }
-                });
+                },    
+            });
+            suggestions.initialize();
 
-                $('body .bootstrap-tagsinput input').on('keypress', function(e){
-                    if(e.keyCode == 13){
-                        e.preventDefault();
-                    }
-                });
-                $('.form-check-input-styled').uniform();
-            // })
+            $('#input-tags').tagsinput({
+                typeaheadjs: {
+                    source: suggestions.ttAdapter()
+                },
+                maxTags: 10
+            });
+
+            $('body .bootstrap-tagsinput input').on('keypress', function(e){
+                if(e.keyCode == 13){
+                     e.preventDefault();
+                }
+            });
+            $('.form-check-input-styled').uniform();
+        })()
     </script>
     <script>
-        
+        function addKeyword($keyword){
+            $('#input-tags').tagsinput('add',$keyword);
+        }
         moment.locale('id');
         var data = {!!json_encode($queue->data)!!}
         var category = {!!json_encode($queue->category)!!}
+        var avaliableKeywords = {!!json_encode($keywords)!!}
         var keywords = {!!json_encode($queue->keywords)!!}
-        var legends = {!!json_encode($queue->keywords)!!};
+        var legends = {!!json_encode($keywords)!!};
         legends.unshift('dataset');
         var labels = data.map(function(data){
             if(data.start_date == data.end_date){
@@ -87,7 +89,7 @@
             })
         })
 
-        keywords.forEach(function(keyword){
+        avaliableKeywords.forEach(function(keyword){
             var maped = data.map(function(val, index){
                return val['trends'][category][keyword];
             })
@@ -254,6 +256,7 @@
                 }else{
                     currentData = data;
                 }
+
                 n = currentData.length;
                 sigmaX = currentData.reduce(function(a,b){
                     return { value:a.value + b.value}
@@ -266,30 +269,40 @@
 
                 corellation = [];
                 keywords.forEach(function(keyword){
+                    
                     keywordData = currentData.map(function(data){
-                        return data.trends[keyword];
+                        return data.trends[category][keyword];
                     })
-                    sigmaY = keywordData.reduce(function(a,b){
-                        return a + b;
-                    })
-                    sigmaY2 = keywordData.map(function(data){
-                        return Math.pow(data,2);
-                    }).reduce(function(a,b){
-                        return a+b;
-                    })
-                    sigmaXY = 0;
-                    for (let index = 0; index < currentData.length; index++) {
-                        sigmaXY += currentData[index].value * currentData[index].trends[keyword];
-                    }
+                    if(keywordData[0] != null){
+                        sigmaY = keywordData.reduce(function(a,b){
+                            return a + b;
+                        })
+                        sigmaY2 = keywordData.map(function(data){
+                            return Math.pow(data,2);
+                        }).reduce(function(a,b){
+                            return a+b;
+                        })
+                        sigmaXY = 0;
+                        for (let index = 0; index < currentData.length; index++) {
+                            sigmaXY += currentData[index].value * currentData[index].trends[category][keyword];
+                        }
 
-                    ul = (sigmaXY - ((sigmaX * sigmaY) / n));
-                    lo = Math.sqrt((sigmaX2 - (Math.pow(sigmaX,2) / n)) * (sigmaY2 - (Math.pow(sigmaY,2) / n)));
+                        ul = (sigmaXY - ((sigmaX * sigmaY) / n));
+                        lo = Math.sqrt((sigmaX2 - (Math.pow(sigmaX,2) / n)) * (sigmaY2 - (Math.pow(sigmaY,2) / n)));
+                        corellation.push({
+                            key: keyword,
+                            value : ul/lo
+                        })
+                    }else{
+                        corellation.push({
+                            key: keyword,
+                            value : "Sorry, we don't get enough data"
+                        })
+                    }
+                    
                     // console.log(ul);
                     
-                    corellation.push({
-                        key: keyword,
-                        value : ul/lo
-                    })
+                    
                     // corellation.push([keyword] : ul/lo);
                 });
 
@@ -324,40 +337,42 @@
             }
     </script>
     <script>
-        function readURL(input) {
-            if (input.files && input.files[0]) {
-                // var reader = new FileReader();
-                // reader.onload = function(e) {
-                //     $('#blah').attr('src', e.target.result);
-                // }
-                // reader.readAsDataURL(input.files[0]); // convert to base64 string
-                $(".form-check-input-styled").prop('checked',false);
-            }else{
-                $(".form-check-input-styled").prop('checked',true);
+        (function(){
+            function readURL(input) {
+                if (input.files && input.files[0]) {
+                    // var reader = new FileReader();
+                    // reader.onload = function(e) {
+                    //     $('#blah').attr('src', e.target.result);
+                    // }
+                    // reader.readAsDataURL(input.files[0]); // convert to base64 string
+                    $(".form-check-input-styled").prop('checked',false);
+                }else{
+                    $(".form-check-input-styled").prop('checked',true);
+                }
+                $.uniform.update();
             }
-            $.uniform.update();
-        }
 
-        $("body").on('change','input[name="dataset"]',function() {
-            readURL(this);
-        });
+            $("body").on('change','input[name="dataset"]',function() {
+                readURL(this);
+            });
 
-        // $(".form-check-input-styled").change(function(){
-        //     if(this.checked){
-        //         $('body .uniform-uploader').replaceWith(
-        //             $('<input>').attr({
-        //                 'type' : 'file',
-        //                 'accept' : '.xls,.xlsx',
-        //                 'name' : 'dataset',
-        //                 'class' : 'form-input-styled'
-        //             })
-        //             .prop('data-fouc',true)
-        //         )
-        //         $('body .form-input-styled').uniform({
-        //             fileButtonClass: 'action btn bg-info-400'
-        //         })
-        //     }
-        // })
+            // $(".form-check-input-styled").change(function(){
+            //     if(this.checked){
+            //         $('body .uniform-uploader').replaceWith(
+            //             $('<input>').attr({
+            //                 'type' : 'file',
+            //                 'accept' : '.xls,.xlsx',
+            //                 'name' : 'dataset',
+            //                 'class' : 'form-input-styled'
+            //             })
+            //             .prop('data-fouc',true)
+            //         )
+            //         $('body .form-input-styled').uniform({
+            //             fileButtonClass: 'action btn bg-info-400'
+            //         })
+            //     }
+            // })
+        })()
     </script>
 @endsection
 
@@ -382,7 +397,7 @@
                     <div class="form-group">
                         <label>Dataset</label>
                         <input type="file" name="dataset" class="form-input-styled" data-fouc accept=".xls,.xlsx">
-                        <span class="form-text text-muted">Accepted formats: xls, xlsx, csv. Max file size 2Mb or <a href="">Download the example dataset</a></span>
+                        <span class="form-text text-muted">Accepted formats: xls, xlsx, csv. Max file size 2Mb or <a download href="{{asset('files/covid-19.xlsx')}}">Download the example dataset</a></span>
                         <div class="form-check">
                             <label class="form-check-label">
                                 <input type="checkbox" name="use_old" class="form-check-input-styled" checked data-fouc>
@@ -415,32 +430,34 @@
             </div> --}}
         </div>
     </div>
-    <div class="row">
-        <div class="col-md-12">
-            <div class="card">
-                <div class="card-header header-elements-inline">
-                    <h4 class="mb-0">Corellation Results</h4>
-                    <div class="header-elements">
-                        <span id="corellation-period"></span>
-                    </div>
-                </div>
-                
-                <ul id="corellation-list" class="list-group list-group-flush border-top"></ul>
-                
+    <div class="card">
+        <div class="card-header header-elements-inline">
+            <h4 class="mb-0">Corellation Results</h4>
+            <div class="header-elements">
+                <span id="corellation-period"></span>
             </div>
         </div>
-        {{-- <div class="col-md-6">
-            <div class="card">
-                <div class="card-body">
-                    <ul class="list-group">
-                        @foreach($queue->keywords as $keyword)
-                            <li class="list-group-item">{{$keyword}} {{$queue->corelation[$keyword]}}</li>
-                        @endforeach
-                    </ul>
-                </div>
-            </div>
-            
-        </div> --}}
+        
+        <ul id="corellation-list" class="list-group list-group-flush border-top"></ul>
+    </div>
+    <div class="card">
+        <div class="card-header header-elements-inline">
+            <h4 class="mb-0">Related Queries</h4>
+        </div>
+            <ul id="related-queries" class="list-group border-top">
+                @foreach (collect($currentFetchedKeywords)->where('related_queries' ,'!=', []) as $fetchedKeyword)
+                    <li class="list-group-item">
+                        <div>
+                            <h6 >{{$fetchedKeyword['key']}}</h6>
+                            @foreach($fetchedKeyword['related_queries'] as $related)
+                                <span class="badge badge-info" onclick="addKeyword(`{{$related}}`)">{{$related}}</span>
+                            @endforeach
+                        </div>
+                        
+                    </li>
+                @endforeach
+            </ul>
+        
     </div>
 </div>
     

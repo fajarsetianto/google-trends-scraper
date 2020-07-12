@@ -17,7 +17,7 @@
                 switch(response.status){
                     case 0:
                         detailProgress.html('Error').addClass('text-danger');
-                        window.location.replace('{{route("home")}}');
+                        window.location.replace('{{route("home")}}'+'?error='+response.error_message);
                         break;
                     case 1:
                         detailProgress.html('1. Adding job to queue');
