@@ -56,6 +56,7 @@
         
         moment.locale('id');
         var data = {!!json_encode($queue->data)!!}
+        var category = {!!json_encode($queue->category)!!}
         var keywords = {!!json_encode($queue->keywords)!!}
         var legends = {!!json_encode($queue->keywords)!!};
         legends.unshift('dataset');
@@ -88,7 +89,7 @@
 
         keywords.forEach(function(keyword){
             var maped = data.map(function(val, index){
-               return val['trends'][keyword];
+               return val['trends'][category][keyword];
             })
             series.push({
                 name: keyword,

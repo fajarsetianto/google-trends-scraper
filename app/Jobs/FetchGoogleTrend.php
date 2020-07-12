@@ -51,14 +51,33 @@ class FetchGoogleTrend implements ShouldQueue
             $data['end_date'] = Carbon::parse($data['end_date']);
             return $data;
         });
+
+        $category = $this->currentQueue->category;
         $fetchedKeywords = collect($this->currentQueue->fetched_keywords);
-        $keywords = collect($this->currentQueue->keywords)->diff($fetchedKeywords);
+        $keywords = collect($this->currentQueue->keywords);
+        // dd($fetchedKeywords[$category]);
+        if($fetchedKeywords->isEmpty() || !array_key_exists($category,$fetchedKeywords->toArray())){
+            $fetchedKeywords[$category] = $keywords;
+        }else{
+            $keywords = $keywords->diff($fetchedKeywords[$category]);
+            $fetchedKeywords[$category] = collect($fetchedKeywords[$category])->merge($keywords);
+            // if(array_key_exists($category,$fetchedKeywords->toArray())){
+            //     $keywords = $keywords->diff($fetchedKeywords[$category]);
+            //     $fetchedKeywords[$category] = collect($fetchedKeywords[$category])->merge($keywords);
+            // }else{
+            //     $fetchedKeywords[$category] = $keywords;
+            // }
+            
+        }
         
-        $fetchedKeywords = $fetchedKeywords->merge($keywords);
+
+        
         
         $periods = $this->getPeriod($dataset);
 
         $this->currentQueue->update(['status' => 2]);
+        $i = 0;
+        $avaliable = false;
         foreach($keywords as $keyword){
             $keywordDaily = collect();
             foreach($periods as $period){
@@ -101,33 +120,52 @@ class FetchGoogleTrend implements ShouldQueue
                         $keywordDaily = $keywordDaily->merge($periodDaily);
                         
                     }else{
-                        throw new Exception('Error, Google Trends response with empty data for "'.$keyword.'" at period '.$period['start_date']->format('Y-m-d').' - '.$period['end_date']->format('Y-m-d'));
+                        $keywordDaily = null;
+                        if(!$avaliable && $i == $keywords->count()){
+                            throw new Exception('Error, Google Trends response with empty data for "'.$keyword.'" at period '.$period['start_date']->format('Y-m-d').' - '.$period['end_date']->format('Y-m-d'));
+                        }
+                        break;
                     }
                 }else{
                     //daily error;
-                    throw new Exception('Error while try to fetch "'.$keyword.'" at period '.$period['start_date']->format('Y-m-d').' - '.$period['end_date']->format('Y-m-d'));
+                    $keywordDaily = null;
+                    if(!$avaliable && $i == $keywords->count()){
+                        throw new Exception('Error while try to fetch "'.$keyword.'" at period '.$period['start_date']->format('Y-m-d').' - '.$period['end_date']->format('Y-m-d'));
+                    }
+                    break;
+                    
                 }
             }
-            $keywordDaily = $keywordDaily->collapse();
-            $dataset = $dataset->map(function($data) use ($keywordDaily, $keyword){
-                $currentStartDate = $data['start_date'];
-                $currentEndDate = $data['end_date'];
-                $total = $keywordDaily->sum(function($data) use ($currentStartDate, $currentEndDate){
-                    if($data['time']->between($currentStartDate, $currentEndDate)){
-                        return $data['value'];
-                    }
-                    return 0;
+            if($keywordDaily != null){
+                $avaliable = true;
+                $keywordDaily = $keywordDaily->collapse();
+                $dataset = $dataset->map(function($data) use ($keywordDaily, $keyword, $category){
+                    $currentStartDate = $data['start_date'];
+                    $currentEndDate = $data['end_date'];
+                    $total = $keywordDaily->sum(function($data) use ($currentStartDate, $currentEndDate){
+                        if($data['time']->between($currentStartDate, $currentEndDate)){
+                            return $data['value'];
+                        }
+                        return 0;
+                    });
+                    $data['trends'][$category][$keyword] = $total;
+                    return $data;
                 });
-                $data['trends'][$keyword] = $total;
-                return $data;
-            });
-            $max = $dataset->max(function($data) use($keyword){
-                return $data['trends'][$keyword];
-            });
-            $dataset = $dataset->map(function($data) use ($max,$keyword) {
-                $data['trends'][$keyword] = (100/$max) * $data['trends'][$keyword];
-                return $data;
-            });
+                $max = $dataset->max(function($data) use($keyword,$category){
+                    return $data['trends'][$category][$keyword];
+                });
+                $dataset = $dataset->map(function($data) use ($max,$keyword,$category) {
+                    $data['trends'][$category][$keyword] = (100/$max) * $data['trends'][$category][$keyword];
+                    return $data;
+                });
+            }
+            else{
+                $dataset = $dataset->map(function($data) use ($keyword,$category){
+                    $data['trends'][$category][$keyword] = null;
+                    return $data;
+                });
+            }
+            $i++;
         }
         $this->currentQueue->update(['status' => 3]);
 

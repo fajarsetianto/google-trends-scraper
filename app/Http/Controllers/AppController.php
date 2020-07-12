@@ -57,11 +57,15 @@ class AppController extends Controller{
         if($queue!= null && $request->input('use_old') != null){
             $queue->update([
                 'keywords' => $input['keyword'],
-                'fetched_keywords' => $currentCategory != $input['kategori'] ? [] : $queue->fetched_keywords,
                 'category' => $input['kategori'],
             ]);
-            if(collect($input['keyword'])->diff(collect($queue->fetched_keywords))->isEmpty()){
-                return redirect()->route('results', [$queue->id]);
+            $fetchedKeywords = collect($queue->fetched_keywords);
+            
+            if(array_key_exists($input['kategori'],$fetchedKeywords->toArray())){
+                // dd('a');
+                if(collect($input['keyword'])->diff($fetchedKeywords[$input['kategori']])->isEmpty()){
+                    return redirect()->route('results', [$queue->id]);
+                }
             }
             $queue->update([
                 'status' => 1
