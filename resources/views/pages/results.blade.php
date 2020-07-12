@@ -388,16 +388,33 @@
                         <div class="d-block">
                             <input type="text" placeholder="Type Keywords" id="input-tags" name="keyword" value="{{old('keyword') ? implode(',',old('keyword')) : implode(',',$queue->keywords)}}" required/>
                         </div>
+                        @error('keyword')
+                            <span class="text-danger" role="alert">
+                                <small>{{ $message }}</small>
+                            </span>
+                        @enderror
                     </div>
                     
                     <div class="form-group">
                         <label>Category</label>
                         <input type="number" value="{{old('kategori') ? old('kategori') : $queue->category}}" name="kategori" class="form-control category-input" required>
+                        @error('kategori')
+                            <span class="text-danger" role="alert">
+                                <small>{{ $message }}</small>
+                            </span>
+                        @enderror
                     </div>
                     <div class="form-group">
                         <label>Dataset</label>
                         <input type="file" name="dataset" class="form-input-styled" data-fouc accept=".xls,.xlsx">
                         <span class="form-text text-muted">Accepted formats: xls, xlsx, csv. Max file size 2Mb or <a download href="{{asset('files/covid-19.xlsx')}}">Download the example dataset</a></span>
+                        @error('dataset*')
+                            <div class="">
+                                <span class="text-danger" role="alert">
+                                    <small>{{ $message }}</small>
+                                </span>
+                            </div>
+                        @enderror
                         <div class="form-check">
                             <label class="form-check-label">
                                 <input type="checkbox" name="use_old" class="form-check-input-styled" checked data-fouc>
@@ -409,7 +426,31 @@
                 </form>
             </div>
         </div>
-        <div class="col-md-6"></div>
+        <div class="col-md-6">
+            <div class="card" style="box-shadow: none">
+                <div class="card-header header-elements-inline">
+                    <h4 class="mb-0">Related Queries</h4>
+                </div>
+                @php
+                    $avaliableRelated = collect($currentFetchedKeywords)->where('related_queries' ,'!=', []);
+                @endphp
+                @if($avaliableRelated->isNotEmpty())
+                    <ul id="related-queries" class="list-group border-top" style="max-height: 350px;overflow:auto">
+                        @foreach ($avaliableRelated as $fetchedKeyword)
+                            <li class="list-group-item">
+                                <div>
+                                    <h6 >{{$fetchedKeyword['key']}}</h6>
+                                    @foreach($fetchedKeyword['related_queries'] as $related)
+                                        <span class="badge badge-info" onclick="addKeyword(`{{$related}}`)">{{$related}}</span>
+                                    @endforeach
+                                </div>
+                                    
+                            </li>
+                        @endforeach
+                    </ul>
+                @endif
+            </div>
+        </div>
     </div>
 </div>
 <div class="container">
@@ -440,7 +481,7 @@
         
         <ul id="corellation-list" class="list-group list-group-flush border-top"></ul>
     </div>
-    <div class="card">
+    {{-- <div class="card">
         <div class="card-header header-elements-inline">
             <h4 class="mb-0">Related Queries</h4>
         </div>
@@ -458,7 +499,7 @@
                 @endforeach
             </ul>
         
-    </div>
+    </div> --}}
 </div>
     
     
