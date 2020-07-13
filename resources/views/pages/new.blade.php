@@ -67,6 +67,11 @@
                         <div class="col-md-9">
                             <div class="card rounded-0 mb-0">
                                 <div class="card-body">
+                                    @if(session('error'))
+                                        <div class="alert alert-danger">
+                                            {{ session('error')}}
+                                        </div>
+                                    @endif
                                     <form action="{{route('search')}}" enctype="multipart/form-data" method="POST">
                                         @csrf
                                         <div class="form-group">

@@ -438,7 +438,7 @@
                     <ul id="related-queries" class="list-group border-top" style="max-height: 350px;overflow:auto">
                         @foreach ($avaliableRelated as $fetchedKeyword)
                             <li class="list-group-item">
-                                <div>
+                                <div style="max-width: 100%">
                                     <h6 >{{$fetchedKeyword['key']}}</h6>
                                     @foreach($fetchedKeyword['related_queries'] as $related)
                                         <span class="badge badge-info" onclick="addKeyword(`{{$related}}`)">{{$related}}</span>

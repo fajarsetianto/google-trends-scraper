@@ -151,7 +151,7 @@ class FetchGoogleTrend implements ShouldQueue
 
                 $relatedQueries = $trend->getRelatedSearchQueries([$keyword],$category, $dataset->first()['start_date']->format('Y-m-d').' '.$dataset->last()['start_date']->format('Y-m-d')); 
                 $relatedQueries = collect($relatedQueries[$keyword]['default']['rankedList'][0]['rankedKeyword'])->pluck('query');
-                // dd($relatedQueries);
+                
                 $fetchedKeywords[$category] = collect($fetchedKeywords[$category])->push([
                     "key" => $keyword,
                     "avaliable" => true,
@@ -172,13 +172,12 @@ class FetchGoogleTrend implements ShouldQueue
             }
             $i++;
         }
-        // dd($fetchedKeywords);
-        $this->currentQueue->update(['status' => 3]);
+        
 
         $this->currentQueue->update([
             'data' => $dataset,
             'fetched_keywords' => $fetchedKeywords,
-            'status' => 4,
+            'status' => 3,
         ]);
     }
 

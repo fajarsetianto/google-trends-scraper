@@ -106,11 +106,11 @@ class AppController extends Controller{
     }
 
     public function progress(Queue $queue){
-        // return view('pages.progress', compact('queue'));
         switch($queue->status){
             case 0:
+                return redirect()->route('home')->with('error',$queue->error_message);
                 break;
-            case 4:
+            case 3:
                 return redirect()->route('results', [$queue->id]);
                 break;
             default:
@@ -122,39 +122,11 @@ class AppController extends Controller{
     public function results(Queue $queue){
         switch($queue->status){
             case 0:
+                return redirect()->route('home')->with('error',$queue->error_message);
                 break;
-            case 4:
-                // $corelation = collect();
-                // $dataset = collect($queue->dataset);
-                // $realCases = $dataset->pluck('value');
-                // $n = $realCases->count();
-                // $sigmaX = $realCases->sum();
-                // $sigmaX2 = $realCases->sum(function($value){
-                //     return pow($value,2);
-                // });
-
-                // foreach($queue->keywords as $keyword){
-                //     $currentTrendData = $dataset->pluck('keywords.'.$keyword);
-                    
-                //     $sigmaY = $currentTrendData->sum();
-                //     $sigmaY2 = $currentTrendData->sum(function($value){
-                //         return pow($value,2);
-                //     });
-                //     dd($currentTrendData->zip($realCases)->map(function($item){return '('.$item[0].','.$item[1].')';})->implode(' '));
-                //     $sigmaXY = $currentTrendData->zip($realCases)->sum(function($item){
-                //         return $item[0] * $item[1];
-                //     });
-                //     $top = ($sigmaXY - (($sigmaX * $sigmaY) / $n));
-                //     $bottom = sqrt(($sigmaX2 - (pow($sigmaX,2) / $n)) * ($sigmaY2 - (pow($sigmaY,2) / $n)));
-                    
-                //     $corelation[$keyword] = $top / ($bottom != 0 ? $bottom : 1);
-                //     // $corelation[$keyword] = ($sigmaXY - (($sigmaX * $sigmaY) / $n)) / sqrt(($sigmaX2 - (pow($sigmaX,2) / $n)) * ($sigmaY2 - (pow($sigmaY,2) / $n)));
-                // }
-                // dd($queue->corelation);
+            case 3:
                 $categories = collect($this->gTrends->getCategories()['children'])->prepend(['name'=> 'Semua Kategori','id'=>0]);
-                
                 $fetchedKeywords = collect($queue->fetched_keywords[$queue->category])->where('avaliable',true)->values();
-                // $currentKeywords = $queue->keywords;
                 $keywords = collect($queue->keywords)->filter(function($data) use ($fetchedKeywords){
                     return in_array($data,$fetchedKeywords->pluck('key')->toArray());
                 })->values();
@@ -187,8 +159,12 @@ class AppController extends Controller{
         return $newArr;
     }
  
-    public function jobs(Queue $queue){
+    public function jobs(Queue $queue, Request $request){
         switch($queue->status){
+            case 0:
+                $request->session()->flash('error', $queue->error_message);
+                return response()->json($queue->only(['status']),200);
+                break;
             case 1:
                 return response()->json([
                  'status' => $queue->status,
@@ -196,7 +172,7 @@ class AppController extends Controller{
                 ],200);
                 break;
             default:
-                return response()->json($queue->only(['status','error_message']),200);
+                return response()->json($queue->only(['status']),200);
                 break;
         }
     }

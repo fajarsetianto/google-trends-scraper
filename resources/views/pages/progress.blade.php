@@ -17,7 +17,7 @@
                 switch(response.status){
                     case 0:
                         detailProgress.html('Error').addClass('text-danger');
-                        window.location.replace('{{route("home")}}'+'?error='+response.error_message);
+                        window.location.replace('{{route("home")}}');
                         break;
                     case 1:
                         detailProgress.html('1. Adding job to queue');
@@ -30,15 +30,12 @@
                         detailProgress.html('2. Fetcing data from Google Trend');
                         break;
                     case 3:
-                        detailProgress.html('3. Normalize data');
-                        break;
-                    case 4:
-                        detailProgress.html('4. Preparing Result');
+                        detailProgress.html('3. Preparing Result');
                         window.location.replace('{{route("results",[$queue->id])}}');
                         break
                 }
                 updateLoading(response.status)
-                if(response.status != 4 && response.status != 0 ){
+                if(response.status != 3 && response.status != 0 ){
                     check()
                 }
             }catch(error){
@@ -77,24 +74,19 @@
                 </div>
 
                 <div class="card-footer bg-white d-flex justify-content-between align-items-center">
-                    <div style="flex-basis: 24%">
+                    <div style="flex-basis: 30%">
                         <div class="progress" style="height: 0.625rem;">
                             <div id="progress-1" class="progress-bar " role="progressbar" style="width: 0%;" aria-valuenow="0" aria-valuemin="0" aria-valuemax="100"></div>
                         </div>
                     </div>
-                    <div style="flex-basis: 24%">
+                    <div style="flex-basis: 30%">
                         <div class="progress" style="height: 0.625rem;">
                             <div id="progress-2" class="progress-bar" role="progressbar" style="width: 0%" aria-valuenow="0" aria-valuemin="0" aria-valuemax="100"></div>
                         </div>
                     </div>
-                    <div style="flex-basis: 24%">
+                    <div style="flex-basis: 30%">
                         <div class="progress" style="height: 0.625rem;">
                             <div id="progress-3" class="progress-bar " role="progressbar" style="width: 0%" aria-valuenow="0" aria-valuemin="0" aria-valuemax="100"></div>
-                        </div>
-                    </div>
-                    <div style="flex-basis: 24%">
-                        <div class="progress" style="height: 0.625rem;">
-                            <div id="progress-4" class="progress-bar " role="progressbar" style="width: 0%" aria-valuenow="0" aria-valuemin="0" aria-valuemax="100"></div>
                         </div>
                     </div>
                 </div>
