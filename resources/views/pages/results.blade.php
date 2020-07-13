@@ -458,7 +458,7 @@
                     </ul>
                 @else
                     <div class="text-center m-4">
-                        Ups! no relatted queries for your keywords on this category
+                        Ups! no related queries for keywords <span class="text-bold">{{collect($queue->keywords)->join(', ',' and ')}}</span>  in this category
                     </div>
                 @endif
             </div>
