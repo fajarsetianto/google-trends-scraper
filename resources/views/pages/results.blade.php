@@ -457,7 +457,7 @@
                         @endforeach
                     </ul>
                 @else
-                    <div class="text-center">
+                    <div class="text-center m-4">
                         Ups! no relatted queries for your keywords on this category
                     </div>
                 @endif
