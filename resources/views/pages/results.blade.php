@@ -384,7 +384,7 @@
         <div class="col-md-12">
             <div class="card bg-info">
                 <div class="card-body">
-                    <h3>Corellation results for {{collect($queue->keywords)->join(', ',' and ')}} at {{Carbon\Carbon::parse($queue->data[0]['start_date'])->format('d-m-yy') . ' - ' .Carbon\Carbon::parse($queue->data[sizeof($queue->data) - 1]['end_date'])->format('d-m-yy') }}</h3>
+                    <h3>Corellation results for {{collect($queue->keywords)->join(', ',' and ')}} at {{Carbon\Carbon::parse($queue->data[0]['start_date'])->format('d-m-Y') . ' - ' .Carbon\Carbon::parse($queue->data[sizeof($queue->data) - 1]['end_date'])->format('d-m-Y') }}</h3>
                 </div>
             </div>
         </div>
