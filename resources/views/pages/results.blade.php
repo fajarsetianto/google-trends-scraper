@@ -123,7 +123,7 @@
         line_basic.setOption({
             
             // Define colors
-            color: colors,
+            color: ['#00FF02','#0200FF','#FF0200','#FFFC00','#FF8E00','#00FF8E','#8E00FF','#00FFFC','#FC00FF','#000000'],
 
             // Global text styles
             textStyle: {
@@ -314,7 +314,7 @@
                     // console.log('loop')
                     $('#corellation-list').append(
                         $('<li>').addClass('list-group-item').append([
-                            $('<span>').addClass('text-uppercase').html((index+1)+'. '+value.key),
+                            $('<span>').addClass('text-bolder').html((index+1)+'. '+value.key),
                             $('<span>').addClass('ml-auto').html(value.value),
                         ])
                     )
@@ -381,6 +381,13 @@
 @section('content')
 <div class="card container-fluid">
     <div class="row">
+        <div class="col-md-12">
+            <div class="card bg-info">
+                <div class="card-body">
+                    <h3>Corellation results for {{collect($queue->keywords)->join(', ',' and ')}} at {{Carbon\Carbon::parse($queue->data[0]['start_date'])->format('d-m-yy') . ' - ' .Carbon\Carbon::parse($queue->data[sizeof($queue->data) - 1]['end_date'])->format('d-m-yy') }}</h3>
+                </div>
+            </div>
+        </div>
         <div class="col-md-6">
             <div class="card" style="box-shadow: none">
                 <div class="card-header">
@@ -440,27 +447,30 @@
                 <div class="card-header header-elements-inline">
                     <h4 class="mb-0">Related Queries</h4>
                 </div>
-                @php
-                    $avaliableRelated = collect($currentFetchedKeywords)->where('related_queries' ,'!=', []);
-                @endphp
-                @if($avaliableRelated->isNotEmpty())
-                    <ul id="related-queries" class="list-group border-top" style="max-height: 350px;overflow:auto">
-                        @foreach ($avaliableRelated as $fetchedKeyword)
-                            <li class="list-group-item">
-                                <div style="max-width: 100%">
-                                    <h6><strong>{{$fetchedKeyword['key']}}</strong></h6>
-                                    @foreach($fetchedKeyword['related_queries'] as $related)
-                                        <span class="badge badge-info" onclick="addKeyword(`{{$related}}`)">{{$related}}</span>
-                                    @endforeach
-                                </div>
-                            </li>
-                        @endforeach
-                    </ul>
-                @else
-                    <div class="text-center m-4">
-                        Ups! no related queries for keywords <strong>{{collect($queue->keywords)->join(', ',' and ')}}</strong>  in this category
-                    </div>
-                @endif
+                <div class="card-body">
+                    @php
+                        $avaliableRelated = collect($currentFetchedKeywords)->where('related_queries' ,'!=', []);
+                    @endphp
+                    @if($avaliableRelated->isNotEmpty())
+                        <ul id="related-queries" class="list-group border-top bg-slate-400" style="max-height: 350px;overflow:auto">
+                            @foreach ($avaliableRelated as $fetchedKeyword)
+                                <li class="list-group-item">
+                                    <div style="max-width: 100%">
+                                        <h6><strong>{{$fetchedKeyword['key']}}</strong></h6>
+                                        @foreach($fetchedKeyword['related_queries'] as $related)
+                                            <span class="badge badge-info" onclick="addKeyword(`{{$related}}`)">{{$related}}</span>
+                                        @endforeach
+                                    </div>
+                                </li>
+                            @endforeach
+                        </ul>
+                    @else
+                        <div class="text-center m-4">
+                            Ups! no related queries for keywords <strong>{{collect($queue->keywords)->join(', ',' and ')}}</strong>  in this category
+                        </div>
+                    @endif
+                </div>
+                
             </div>
         </div>
     </div>
