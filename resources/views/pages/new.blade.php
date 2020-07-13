@@ -1,5 +1,5 @@
 @extends('pages.layout')
-
+@section('title','GTrend - Home')
 @section('css')
 <link href="{{asset('vendor/bootstrap-tags-input/tagsinput.css')}}" rel="stylesheet">
 <link href="{{asset('custom/custom.css')}}" rel="stylesheet">

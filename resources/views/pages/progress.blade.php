@@ -1,5 +1,5 @@
 @extends('pages.layout')
-
+@section('title','GTrend - Fecthing data for '.collect($queue->keywords)->join(', ',' and '))
 @section('css')
 
 @endsection
@@ -27,7 +27,7 @@
                         }
                         break;
                     case 2:
-                        detailProgress.html('2. Fetcing data from Google Trend');
+                        detailProgress.html('2. Fetching data from Google Trend');
                         break;
                     case 3:
                         detailProgress.html('3. Preparing Result');

@@ -1,5 +1,7 @@
 @extends('pages.layout')
 
+@section('title','GTrend - Correlation '.collect($queue->keywords)->join(', ',' and '))
+
 @section('css')
     <link href="{{asset('vendor/bootstrap-tags-input/tagsinput.css')}}" rel="stylesheet">
     <link href="{{asset('custom/custom.css')}}" rel="stylesheet">
