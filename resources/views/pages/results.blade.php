@@ -382,51 +382,58 @@
 <div class="card container-fluid">
     <div class="row">
         <div class="col-md-6">
-            <div class="p-3">
-                <form action="{{route('search',[$queue->id])}}" enctype="multipart/form-data" method="POST">
-                    @csrf
-                    <div class="form-group">
-                        <label>Keywords</label>
-                        <div class="d-block">
-                            <input type="text" placeholder="Type Keywords" id="input-tags" name="keyword" value="{{old('keyword') ? implode(',',old('keyword')) : implode(',',$queue->keywords)}}" required/>
-                        </div>
-                        @error('keyword')
-                            <span class="text-danger" role="alert">
-                                <small>{{ $message }}</small>
-                            </span>
-                        @enderror
-                    </div>
-                    
-                    <div class="form-group">
-                        <label>Category</label>
-                        <input type="number" value="{{old('kategori') ? old('kategori') : $queue->category}}" name="kategori" class="form-control category-input" required>
-                        @error('kategori')
-                            <span class="text-danger" role="alert">
-                                <small>{{ $message }}</small>
-                            </span>
-                        @enderror
-                    </div>
-                    <div class="form-group">
-                        <label>Dataset</label>
-                        <input type="file" name="dataset" class="form-input-styled" data-fouc accept=".xls,.xlsx">
-                        <span class="form-text text-muted">Accepted formats: xls, xlsx, csv. Max file size 2Mb or <a download href="{{asset('files/covid-19.xlsx')}}">Download the example dataset</a></span>
-                        @error('dataset*')
-                            <div class="">
+            <div class="card" style="box-shadow: none">
+                <div class="card-header">
+                    <h4 class="mb-0">Corellation Form</h4>
+                </div>
+                <div class="card-body">
+                    <form action="{{route('search',[$queue->id])}}" enctype="multipart/form-data" method="POST">
+                        @csrf
+                        <div class="form-group">
+                            <label>Keywords</label>
+                            <div class="d-block">
+                                <input type="text" placeholder="Type Keywords" id="input-tags" name="keyword" value="{{old('keyword') ? implode(',',old('keyword')) : implode(',',$queue->keywords)}}" required/>
+                            </div>
+                            @error('keyword')
                                 <span class="text-danger" role="alert">
                                     <small>{{ $message }}</small>
                                 </span>
-                            </div>
-                        @enderror
-                        <div class="form-check">
-                            <label class="form-check-label">
-                                <input type="checkbox" name="use_old" class="form-check-input-styled" checked data-fouc>
-                                Or use latest dataset
-                            </label>
+                            @enderror
                         </div>
-                    </div>
-                    <button type="submit" class="btn btn-info">Submit</button>
-                </form>
+                        
+                        <div class="form-group">
+                            <label>Category</label>
+                            <input type="number" value="{{old('kategori') ? old('kategori') : $queue->category}}" name="kategori" class="form-control category-input" required>
+                            @error('kategori')
+                                <span class="text-danger" role="alert">
+                                    <small>{{ $message }}</small>
+                                </span>
+                            @enderror
+                        </div>
+                        <div class="form-group">
+                            <label>Dataset</label>
+                            <input type="file" name="dataset" class="form-input-styled" data-fouc accept=".xls,.xlsx">
+                            <span class="form-text text-muted">Accepted formats: xls, xlsx, csv. Max file size 2Mb or <a download href="{{asset('files/covid-19.xlsx')}}">Download the example dataset</a></span>
+                            @error('dataset*')
+                                <div class="">
+                                    <span class="text-danger" role="alert">
+                                        <small>{{ $message }}</small>
+                                    </span>
+                                </div>
+                            @enderror
+                            <div class="form-check">
+                                <label class="form-check-label">
+                                    <input type="checkbox" name="use_old" class="form-check-input-styled" checked data-fouc>
+                                    Or use latest dataset
+                                </label>
+                            </div>
+                        </div>
+                        <button type="submit" class="btn btn-info">Submit</button>
+                    </form>
+                </div>
             </div>
+                
+            
         </div>
         <div class="col-md-6">
             <div class="card" style="box-shadow: none">
