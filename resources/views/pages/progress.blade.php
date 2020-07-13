@@ -74,17 +74,17 @@
                 </div>
 
                 <div class="card-footer bg-white d-flex justify-content-between align-items-center">
-                    <div style="flex-basis: 30%">
+                    <div style="flex-basis: 32%">
                         <div class="progress" style="height: 0.625rem;">
                             <div id="progress-1" class="progress-bar " role="progressbar" style="width: 0%;" aria-valuenow="0" aria-valuemin="0" aria-valuemax="100"></div>
                         </div>
                     </div>
-                    <div style="flex-basis: 30%">
+                    <div style="flex-basis: 32%">
                         <div class="progress" style="height: 0.625rem;">
                             <div id="progress-2" class="progress-bar" role="progressbar" style="width: 0%" aria-valuenow="0" aria-valuemin="0" aria-valuemax="100"></div>
                         </div>
                     </div>
-                    <div style="flex-basis: 30%">
+                    <div style="flex-basis: 32%">
                         <div class="progress" style="height: 0.625rem;">
                             <div id="progress-3" class="progress-bar " role="progressbar" style="width: 0%" aria-valuenow="0" aria-valuemin="0" aria-valuemax="100"></div>
                         </div>

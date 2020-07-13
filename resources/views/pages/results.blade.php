@@ -448,7 +448,7 @@
                         @foreach ($avaliableRelated as $fetchedKeyword)
                             <li class="list-group-item">
                                 <div style="max-width: 100%">
-                                    <h6 >{{$fetchedKeyword['key']}}</h6>
+                                    <h6><strong>{{$fetchedKeyword['key']}}</strong></h6>
                                     @foreach($fetchedKeyword['related_queries'] as $related)
                                         <span class="badge badge-info" onclick="addKeyword(`{{$related}}`)">{{$related}}</span>
                                     @endforeach
@@ -458,7 +458,7 @@
                     </ul>
                 @else
                     <div class="text-center m-4">
-                        Ups! no related queries for keywords <span class="text-bold">{{collect($queue->keywords)->join(', ',' and ')}}</span>  in this category
+                        Ups! no related queries for keywords <strong>{{collect($queue->keywords)->join(', ',' and ')}}</strong>  in this category
                     </div>
                 @endif
             </div>
