@@ -453,10 +453,13 @@
                                         <span class="badge badge-info" onclick="addKeyword(`{{$related}}`)">{{$related}}</span>
                                     @endforeach
                                 </div>
-                                    
                             </li>
                         @endforeach
                     </ul>
+                @else
+                    <div class="text-center">
+                        Ups! no relatted queries for your keywords on this category
+                    </div>
                 @endif
             </div>
         </div>
