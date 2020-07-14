@@ -23,7 +23,7 @@
                         detailProgress.html('1. Adding job to queue');
                         if(response.jobs_a_head != 0){
                             note.removeClass('d-none')
-                            jobsRemaining.html(response.jobs_a_head+' jobs a head');
+                            jobsRemaining.html(response.jobs_a_head);
                         }
                         break;
                     case 2:
@@ -69,7 +69,7 @@
                 
                 <div class="card-body py-0" >
                     <div id="note" class="py-1 d-none">
-                        Sorry we are a little busy right now. We will process your request after <strong id="jobs-remaining"></strong>
+                        Sorry we are a little busy right now. We will process your request after <strong id="jobs-remaining"></strong>  jobs a head
                     </div>
                 </div>
 
