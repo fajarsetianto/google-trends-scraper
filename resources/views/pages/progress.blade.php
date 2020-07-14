@@ -23,7 +23,7 @@
                         detailProgress.html('1. Adding job to queue');
                         if(response.jobs_a_head != 0){
                             note.removeClass('d-none')
-                            jobsRemaining.html(response.jobs_a_head+' a head');
+                            jobsRemaining.html(response.jobs_a_head+' jobs a head');
                         }
                         break;
                     case 2:
