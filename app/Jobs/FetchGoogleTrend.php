@@ -63,10 +63,9 @@ class FetchGoogleTrend implements ShouldQueue
             $fetchedKeywords[$category] = [];
         }
         
-        $this->currentQueue->update([
-            'status' => 2,
-            'updated_at' => $this->currentQueue->updated_at
-        ]);
+        $this->currentQueue->status = 2;
+        $this->currentQueue->timestamps = false;
+        $this->currentQueue->save();
 
         $i = 0;
         $avaliable = $keywords->count() != collect($this->currentQueue->keywords)->count();
