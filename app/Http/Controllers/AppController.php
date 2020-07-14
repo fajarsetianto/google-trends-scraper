@@ -168,7 +168,7 @@ class AppController extends Controller{
             case 1:
                 return response()->json([
                  'status' => $queue->status,
-                 'jobs_a_head' => Queue::whereNotIn('status',[0,3])->where('created_at','<', $queue->created_at)->count()
+                 'jobs_a_head' => Queue::whereNotIn('status',[0,3])->count()
                 ],200);
                 break;
             default:
