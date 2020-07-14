@@ -10,6 +10,7 @@ use App\Services\GoogleTrend;
 use Google\GTrends;
 use Illuminate\Http\Request;
 use Carbon\CarbonPeriod;
+use Carbon\Carbon;
 
 use DatePeriod;
 use Excel;
@@ -168,7 +169,7 @@ class AppController extends Controller{
             case 1:
                 return response()->json([
                  'status' => $queue->status,
-                 'jobs_a_head' => Queue::whereNotIn('status',[0,3])->whereNotIn('id',[$queue->id])->whereDate('updated_at','<',Carbon\Carbon::parse($queue->updated_at))->count()
+                 'jobs_a_head' => Queue::whereNotIn('status',[0,3])->whereNotIn('id',[$queue->id])->whereDate('updated_at','<',Carbon::parse($queue->updated_at))->count()
                 ],200);
                 break;
             default:
