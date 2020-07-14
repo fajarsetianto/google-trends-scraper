@@ -144,6 +144,7 @@ class FetchGoogleTrend implements ShouldQueue
                 $max = $dataset->max(function($data) use($keyword,$category){
                     return $data['trends'][$category][$keyword];
                 });
+                $max = $max == 0 ? 1 : $max;
                 $dataset = $dataset->map(function($data) use ($max,$keyword,$category) {
                     $data['trends'][$category][$keyword] = (100/$max) * $data['trends'][$category][$keyword];
                     return $data;
