@@ -26,14 +26,11 @@ class AppController extends Controller{
 
     public function __construct()
     {
-        $this->gTrends = new GoogleTrend([
-            'hl'  => 'id',
-            'tz'  => -60, # last hour
-            'geo' => 'ID', 
-        ]);
+        $this->gTrends = new GoogleTrend('ID', 'id',-420);
     }
     public function index(){
         $categories = collect($this->gTrends->getCategories()['children'])->prepend(['name'=> 'Semua Kategori','id'=>0]);
+        
         return view('pages.new', compact('categories'));
     }
 
@@ -63,7 +60,6 @@ class AppController extends Controller{
             $fetchedKeywords = $queue->fetched_keywords;
             
             if(array_key_exists($input['kategori'],$fetchedKeywords)){
-                // dd('a');
                 if(collect($input['keyword'])->diff(collect($fetchedKeywords[$input['kategori']])->pluck('key'))->isEmpty()){
                     return redirect()->route('results', [$queue->id]);
                 }

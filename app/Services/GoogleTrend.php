@@ -1,238 +1,164 @@
 <?php
 namespace App\Services;
 
-use Google\GTrends;
-use Laminas\Json\Json;
+use Exception;
 use Laminas\Http\Client;
 use Laminas\Http\Client\Adapter\Curl;
-use Laminas\Http\Client\Adapter\Socket;
-use Laminas\Http\Client\Adapter\Proxy;
-use Zend\Stdlib\Parameters;
+use Laminas\Http\Cookies;
+use Illuminate\Support\Facades\Cache;
+use GuzzleHttp\Client as GuzzleClient;
+use GuzzleHttp\Cookie\CookieJar;
 
-class GoogleTrend extends GTrends{
+class GoogleTrend{
 
+    private $options;
 
-    
-    public function interestOverTime($kWord, $category=0, $time='now 4-H', $property='')
+    public function __construct($geo_code, $lang_code, $timezone)
     {
-        $payload = [
+        $this->options = [
+            'geo' => $geo_code,
+            'hl' => $lang_code,
+            'tz' => $timezone
+        ];
+    }
+
+    public function prepare($widget,$keyword, $category, $time){
+        $params = [
             'hl' => $this->options['hl'],
             'tz' => $this->options['tz'],
-            'req' => Json::encode([
+            'req' => json_encode([
                 'comparisonItem' => [
                     [
-                        'keyword' => $kWord,
+                        'keyword' => $keyword,
                         'geo' => $this->options['geo'],
                         'time' => $time,
                     ],
                 ],
                 'category' => $category,
-                'property' => $property,
             ]),
         ];
-        $data = $this->_getData(self::GENERAL_ENDPOINT, 'GET', $payload);
-        if ($data) {
-
-            $widgets = Json::decode(trim(substr($data, 4)), Json::TYPE_OBJECT)->widgets;
-
-            foreach ($widgets as $widget) {
-
-                if ($widget->id == 'TIMESERIES') {
-
-                    $interestOverTimePayload['hl'] = $this->options['hl'];
-                    $interestOverTimePayload['tz'] = $this->options['tz'];
-                    $interestOverTimePayload['req'] = Json::encode($widget->request);
-                    $interestOverTimePayload['token'] = $widget->token;
-
-                    $data = $this->_getData(self::INTEREST_OVER_TIME_ENDPOINT, 'GET', $interestOverTimePayload);
-                    if ($data) {
-
-                        return Json::decode(trim(substr($data, 5)), Json::TYPE_ARRAY)['default']['timelineData'];
-                    } else {
-                        logger($data);
-                        return false;
-                    }
-                }
-            }
-        }
-        logger($data);
-        return false;
-    }
-
-
-    public function _getData($uri, $method, array $params=[])
-    {
-        // $params['premium'] = true;
-        // $params['country_code'] = "US";
-        if ($method != 'GET' AND $method != 'POST') {
-
-            # throw new \Exception(__METHOD__ . " $method method not allowed");
-            die(__METHOD__ . " $method method not allowed");
-        }
-
-        $client = new Client();
-        $cookieJar = tempnam(storage_path('tmp'),'cookie');
-        $client->setOptions([
-            'adapter' => Curl::class,
-            'proxy_host' => 'p.webshare.io',
-            'proxy_user'=> 'edswurpo-rotate',
-            'proxy_pass' => 'qh30oorwzasa',
-            'proxy_port' => '80',
-            'curloptions' => [
-                CURLOPT_COOKIEJAR => $cookieJar,
-                // CURLOPT_SSL_VERIFYPEER => false,
-                // CURLOPT_PROXYTYPE => 7
-                // CURLOPT_PROXYTYPE => CURLPROXY_SOCKS5
-            ],
-            'maxredirects' => 10,
-            'timeout' => 60]);
-        $client->setUri($uri);
-        $client->setMethod(strtoupper($method));
-
-        if (strtoupper($method) == 'POST') {
-
-            $client->getRequest()->getHeaders()->addHeaders([
-                'Accept' => 'application/json',
-                'Content-Type' => 'application/json',
-            ]);
-        }
-
-        if ($params) {
-
-            if (strtoupper($method) == 'GET') {
-
-                $client->setParameterGet($params);
-            }
-
-            if (strtoupper($method) == 'POST') {
-
-                $client->getRequest()->setQuery(new Parameters($params));
-            }
-        }
-
-        $client->send();
-        $client->setOptions([
-            'curloptions' => [
-                CURLOPT_COOKIEFILE => $cookieJar,
-            ]]);
-        $client->send();
-        unlink($cookieJar);
-
-        $statusCode = $client->getResponse()->getStatusCode();
-        if ($statusCode == 200) {
-
-            $headers = $client->getResponse()->getHeaders()->toArray();
-            foreach ($headers as $header => $value) {
-
-                if ($header == 'Content-Type') {
-
-                    if (
-                        (stripos($value, 'application/json') !== false OR
-                            stripos($value, 'application/javascript') !== false OR
-                            stripos($value, 'text/javascript') !== false) AND $client->getResponse()->getBody()
-                    ) {
-
-                        return $client->getResponse()->getBody();
-                    }
-                }
+        $data = $this->_getData('https://trends.google.com/trends/api/explore',$params);
+        if($data){
+            $widgets = collect(json_decode(trim(substr($data, 4)), true)['widgets']);
+            $currentWidget = $widgets->where('id', $widget);
+            if($currentWidget->isNotEmpty()){
+                return [
+                    'token' => $currentWidget->first()['token'],
+                    'req' => json_encode($currentWidget->first()['request'])
+                ];
             }
         }
         return false;
     }
 
-    public function suggestionsAutocomplete($kWord)
+    public function getMultilineData($keyword, $category, $time){
+        $data = $this->prepare('TIMESERIES', $keyword, $category, $time);
+        if($data){
+            $data['hl'] = $this->options['hl'];
+            $data['tz'] = $this->options['tz'];
+            $data = $this->_getData('https://trends.google.com/trends/api/widgetdata/multiline', $data);
+            if($data){
+                return json_decode(trim(substr($data, 5)), true)['default']['timelineData'];
+            }
+        }
+        return false;
+        
+    }
+
+    public function _getData($url, $params){
+        $client = new GuzzleClient();
+        $jar = new \GuzzleHttp\Cookie\FileCookieJar(storage_path('tmp').'/gtrendcookie.txt' ,true);
+        $response = $client->request('GET', $url, ['query' => $params,'cookies' => $jar,'proxy' => 'http://edswurpo-rotate:qh30oorwzasa@p.webshare.io:80']);
+        if ($response->getStatusCode() == 200) {
+            return $response->getBody()->getContents();
+        }else{
+            return false;
+        }
+
+        // $client = new Client();
+        // // $cookieJar = tempnam(storage_path('tmp'),'cookie');
+        // $client
+        //     ->setOptions([
+        //         'adapter' => Curl::class,
+        //         'proxy_host' => 'p.webshare.io',
+        //         'proxy_user'=> 'edswurpo-rotate',
+        //         'proxy_pass' => 'qh30oorwzasa',
+        //         'proxy_port' => '80',
+        //         'curloptions' => [
+        //             // CURLOPT_COOKIEJAR => $cookieJar,
+        //             CURLOPT_SSL_VERIFYPEER => false,
+        //         ],
+        //         'maxredirects' => 10,
+        //         'timeout' => 60])
+        //     ->setUri($url)
+        //     ->setMethod('GET')
+        //     ->setParameterGet($params);
+        // $cookies= Cache::get('gtrendCookie', new Cookies());
+        
+        // if(!($cookies instanceof Cookies)){
+        //     $newCookies = new Cookie();
+        //     foreach ($cookies as $cookie) {
+        //         $newCookies->addCookie($cookie);
+        //     }
+        //     $cookies = $newCookies;
+        // }else{
+        //     if(collect($cookies->getAllCookies())->isEmpty()){
+        //         $response = $client->send();
+        //         $cookies->addCookiesFromResponse($response, $client->getUri());
+        //     }
+        // }
+        
+        
+        // $client->setCookies($cookies->getMatchingCookies($url));
+        // $client->send();
+        // $cookies->addCookiesFromResponse($response, $client->getUri());
+        // // dd($cookies);
+        // Cache::forever('gtrendCookie', json_encode($cookies->getAllCookies(1)));
+        
+        // $client->send();
+        
+        // $statusCode = $client->getResponse()->getStatusCode();
+        
+        // if ($statusCode == 200) {
+        //     return $client->getResponse()->getBody();
+        // }else{
+        //     return false;
+        // }
+    }
+
+    public function suggestionsAutocomplete($keyword)
     {
-        $uri = self::SUGGESTIONS_AUTOCOMPLETE_ENDPOINT . "/'$kWord'";
         $param = ['hl' => $this->options['hl']];
-        $data = $this->_getData($uri, 'GET', $param);
+        $data = $this->_getData('https://trends.google.com/trends/api/autocomplete/'.$keyword, $param);
         if ($data) {
-
-            return Json::decode(trim(substr($data, 5)), Json::TYPE_ARRAY);
+            return json_decode(trim(substr($data, 5)), true);
         }
         return false;
     }
 
     public function getCategories()
     {
-        $uri = self::CATEGORIES_ENDPOINT;
-        $param = ['hl' => $this->options['hl']];
-        $data = $this->_getData($uri, 'GET', $param);
+        $params = ['hl' => $this->options['hl']];
+        $data = $this->_getData('https://trends.google.com/trends/api/explore/pickers/category', $params);
         if ($data) {
-
-            return Json::decode(trim(substr($data, 5)), Json::TYPE_ARRAY);
+            return json_decode(trim(substr($data, 5)), true);
         }
         return false;
     }
 
-    public function getRelatedSearchQueries($keyWordList=null, $category=0, $time='today 12-m', $property='', $sleep=0.5)
-    {
-        if (null !== $keyWordList && !is_array($keyWordList)) {
-            $keyWordList = [$keyWordList];
-        }
-
-        if (null === $keyWordList) {
-            $comparisonItem[] = ['geo' => $this->options['geo'], 'time' => $time];
-        } else {
-            if (count($keyWordList) > 5) {
-
-                throw new \Exception('Invalid number of items provided in keyWordList');
-            }
-
-            $comparisonItem = [];
-            foreach ($keyWordList as $kWord) {
-
-                $comparisonItem[] = ['keyword' => $kWord, 'geo' => $this->options['geo'], 'time' => $time];
+    public function getRelatedSearchQueries($keyword, $category, $time){
+        $data = $this->prepare('RELATED_QUERIES', $keyword, $category, $time);
+        if($data){
+            $data['hl'] = $this->options['hl'];
+            $data['tz'] = $this->options['tz'];
+            $data = $this->_getData('https://trends.google.com/trends/api/widgetdata/relatedsearches', $data);
+            if($data){
+                return json_decode(trim(substr($data, 5)), true);
             }
         }
-
-        $payload = [
-            'hl' => $this->options['hl'],
-            'tz' => $this->options['tz'],
-            'req' => Json::encode(['comparisonItem' => $comparisonItem, 'category' => $category, 'property' => $property]),
-        ];
-
-        $data = $this->_getData(self::GENERAL_ENDPOINT, 'GET', $payload);
-        if ($data) {
-
-            $widgetsArray = Json::decode(trim(substr($data, 5)), Json::TYPE_ARRAY)['widgets'];
-
-            $results = [];
-            foreach ($widgetsArray as $widget) {
-
-                if (stripos($widget['id'], 'RELATED_QUERIES') !== false) {
-
-                    $kWord = $widget['request']['restriction']['complexKeywordsRestriction']['keyword'][0]['value'] ?? null;
-                    $relatedPayload['hl'] = $this->options['hl'];
-                    $relatedPayload['tz'] = $this->options['tz'];
-                    $relatedPayload['req'] = Json::encode($widget['request']);
-                    $relatedPayload['token'] = $widget['token'];
-                    $data = $this->_getData(self::RELATED_QUERIES_ENDPOINT, 'GET', $relatedPayload);
-
-                    if ($data) {
-
-                        $queriesArray = Json::decode(trim(substr($data, 5)), Json::TYPE_ARRAY);
-
-                        if (null === $kWord) {
-                            $results = $queriesArray;
-                        } else {
-                            $results[$kWord] = $queriesArray;
-                        }
-
-                        if ($keyWordList and count($keyWordList)>1) {
-
-                            sleep($sleep);
-                        }
-                    } else {
-
-                        return false;
-                    }
-                }
-            }
-
-            return $results;
-        }
-
         return false;
+        
     }
+
     
 }

@@ -1,4 +1,4 @@
-<?php
+<?php 
 
 namespace App\Jobs;
 
@@ -40,12 +40,8 @@ class FetchGoogleTrend implements ShouldQueue
      *
      * @return void
      */
-    public function handle(GoogleTrend $trend){
-        $trend->setOptions([
-            'hl'  => 'in',
-            'tz'  => -420,
-            'geo' => 'ID',
-        ]);
+    public function handle(){
+        $trend = new GoogleTrend('ID', 'id',-420);
         $dataset = collect($this->currentQueue->data)->map(function($data){
             $data['start_date'] = Carbon::parse($data['start_date']);
             $data['end_date'] = Carbon::parse($data['end_date']);
@@ -73,7 +69,7 @@ class FetchGoogleTrend implements ShouldQueue
             $keywordDaily = collect();
             foreach($periods as $period){
                 $debugtime= Carbon::now();
-                $periodDaily = $trend->interestOverTime($keyword,$this->currentQueue->category, $period['start_date']->format('Y-m-d').' '.$period['end_date']->format('Y-m-d')); 
+                $periodDaily = $trend->getMultilineData($keyword,$this->currentQueue->category, $period['start_date']->format('Y-m-d').' '.$period['end_date']->format('Y-m-d')); 
                 logger($keyword.' at '.$period['start_date']->format('Y-m-d').' - '.$period['end_date']->format('Y-m-d').' '.$debugtime->diffInRealSeconds(Carbon::now()).' s');
                 if(is_array($periodDaily)){
                     $periodDaily = collect($periodDaily);
@@ -152,8 +148,8 @@ class FetchGoogleTrend implements ShouldQueue
                     return $data;
                 });
 
-                $relatedQueries = $trend->getRelatedSearchQueries([$keyword],$category, $dataset->first()['start_date']->format('Y-m-d').' '.$dataset->last()['start_date']->format('Y-m-d')); 
-                $relatedQueries = collect($relatedQueries[$keyword]['default']['rankedList'][0]['rankedKeyword'])->pluck('query');
+                $relatedQueries = $trend->getRelatedSearchQueries($keyword,$category, $dataset->first()['start_date']->format('Y-m-d').' '.$dataset->last()['start_date']->format('Y-m-d')); 
+                $relatedQueries = collect($relatedQueries['default']['rankedList'][0]['rankedKeyword'])->pluck('query');
                 
                 $fetchedKeywords[$category] = collect($fetchedKeywords[$category])->push([
                     "key" => $keyword,
