@@ -68,7 +68,7 @@ class GoogleTrend{
     public function _getData($url, $params){
         $client = new GuzzleClient();
         $jar = new \GuzzleHttp\Cookie\FileCookieJar(storage_path('tmp').'/gtrendcookie.txt' ,true);
-        $response = $client->request('GET', $url, ['query' => $params,'cookies' => $jar,'proxy' => 'http://209.127.180.74:9999']);
+        $response = $client->request('GET', $url, ['query' => $params,'cookies' => $jar,'proxy' => 'http://144.168.240.98:19999']);
         if ($response->getStatusCode() == 200) {
             return $response->getBody()->getContents();
         }else{
